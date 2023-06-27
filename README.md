@@ -13,22 +13,39 @@ Phase 1 requires the creation of two unique environments to ensure working capab
 The `hoomd_w_panda` environment is used for data organization and computation, while `my_env` is used for data analysis to produce more understandable information. The lines of interest for specifying these environments in the `hoomd_w_panda` are 160, 161, and 164.
 
 ### `hoomd_w_panda` packages, version, build, and channel (if no channel is specified, it should be downloadable with pip)
+
 +----------------------+-----------------+---------------------------+-----------------------------------+
+
 |      Package         |     Version     |          Build            |             Channel               |
+
 +----------------------+-----------------+---------------------------+-----------------------------------+
+
 |   _libgcc_mutex      |      0.1        |          main             |            defaults               |
+
 |        attrs         |     19.3.0      |          py_0             |            defaults               |
+
 |      backcall        |     0.1.0       |         py37_0            |            defaults               |
+
 |        blas          |      1.0        |          mkl              |                                   |
+
 |       bleach         |     3.1.0       |         py37_0            |            defaults               |
+
 |  ca-certificates     |    2022.07.19   |        h06a4308_0         |                                   |
+
 |       certifi        |    2022.9.14    |       py37h06a4308_0      |                                   |
+
 |    cudatoolkit       |    10.1.168     |            0              |                                   |
+
 |       cycler         |     0.10.0      |         py37_0            |                                   |
+
 |        dbus          |     1.13.12     |      h746ee38_0           |                                   |
+
 |      decorator       |     4.4.1       |         py_0              |                                   |
+
 |     defusedxml       |     0.6.0       |         py_0              |                                   |
+
 |      embree3         |     3.6.1       |       hc9558a2_0          |           conda-forge             |
+
 |    entrypoints       |      0.3        |        py37_0             |                                   |
 |       expat          |      2.2.6      |        he6710b0_0         |                                   |
 |     fontconfig       |     2.13.0      |       h9420a91_0          |                                   |

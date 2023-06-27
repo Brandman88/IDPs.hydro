@@ -1,5 +1,5 @@
 # IDPs.hydro
-####This project could not have been possible without the collaboration of [Swarnadeep Seth](targetURL "https://www.linkedin.com/in/swarnadeepseth/") and [their extensive knowledge in related fields](targetURL "https://swarnadeepseth.github.io/")
+####This project could not have been possible without the collaboration of [Swarnadeep Seth](https://www.linkedin.com/in/swarnadeepseth/) and [their extensive knowledge in related fields](https://swarnadeepseth.github.io/)
 This project has two main sections; Phase 1 and Phase 2.
 ##Phase 1
 This is the data gathering phase, all the data is calculated and organized for the user.

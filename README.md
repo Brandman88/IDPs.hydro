@@ -1,14 +1,18 @@
 # IDPs.hydro
-####This project could not have been possible without the collaboration of [Swarnadeep Seth](https://www.linkedin.com/in/swarnadeepseth/) and [their extensive knowledge in related fields](https://swarnadeepseth.github.io/)
-This project has two main sections; Phase 1 and Phase 2.
-##Phase 1
-This is the data gathering phase, all the data is calculated and organized for the user.
-Note: Phase 1 is designed to be run on a super computer using slurm
-Phase 1 does require two unique environments to be created to ensure working capabilies; The environments are hoomd_w_panda and my_env.
-If you do not care for these names or need to specify your particular modules, you will need to change the run_code.py file commands list(located 159-165). 
-hoomd_w_panda is for organization of data and data computation whilst my_env is for analysis of data to produce information more understandable.
-Lines of interest for doing so for hoomd_w_panda are 160,161, and 164.
-###hoomd_w_panda packages,version,build and Channel(if no Channel specified then should be downloadable with pip)
+
+This project could not have been possible without the collaboration of [Swarnadeep Seth](https://www.linkedin.com/in/swarnadeepseth/) and [their extensive knowledge in related fields](https://swarnadeepseth.github.io/).
+
+This project has two main sections: Phase 1 and Phase 2.
+
+## Phase 1
+
+This is the data gathering phase, where all the data is calculated and organized for the user. Please note that Phase 1 is designed to be run on a supercomputer using slurm.
+
+Phase 1 requires the creation of two unique environments to ensure working capabilities: `hoomd_w_panda` and `my_env`. If you prefer different names or need to specify your particular modules, you will need to change the `run_code.py` file's command list (located at lines 159-165).
+
+The `hoomd_w_panda` environment is used for data organization and computation, while `my_env` is used for data analysis to produce more understandable information. The lines of interest for specifying these environments in the `hoomd_w_panda` are 160, 161, and 164.
+
+### `hoomd_w_panda` packages, version, build, and channel (if no channel is specified, it should be downloadable with pip)
  Name                    Version                   Build  Channel
 _libgcc_mutex             0.1                        main
 attrs                     19.3.0                     py_0

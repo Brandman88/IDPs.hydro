@@ -354,6 +354,18 @@ def organized_end_dir_creator(start):
     if not os.path.exists(end_dir_name):
         # If not, create it
         os.mkdir(end_dir_name)
+    else:
+        end_dir_name=f'{dir_comp}/{Protein_Name}'
+        i=2
+        name_check=end_dir_name
+        while True:
+            name_check=f'{end_dir_name}_{i}/' 
+            if not os.path.exists(name_check):#checking to make sure does not OverWrite dir info
+                os.mkdir(name_check)
+                end_dir_name=name_check
+                break
+            else:
+                i+=1
     # Return the end directory name
     return end_dir_name
 
@@ -506,6 +518,23 @@ def row_specific_info_csv(start,column_name):
     # Return the specific column information
     return specific_csv_row_info
 
+def search_csv_sequence_return_name(file_location_protein_sequence,dest_required_file_csv = "data.csv"):
+    '''Define function to grab specific column information from a specific row in the CSV.'''
+    
+    file = open(file_location_protein_sequence, 'r')
+    read_sequence=file.readline()
+    file.close()
+    csv_dictionary=read_entire_csv_return_dict()
+    i=0
+    for row in csv_dictionary:
+        if row['Sequence']==read_sequence:
+            protein_name=row['Name']
+            match_num=i
+            break
+        else:
+            i+=1
+    return protein_name,match_num
+
 def write_csv_sequence_to_1LC(dest_file="1LC.txt"):
     num_run,start,marker,clean_list=read_multi_run()
     Protein_Sequence=row_specific_info_csv(start,'Sequence')
@@ -531,12 +560,13 @@ def read_dat_files_data_merger_create_csv(csv_file, dir_comp=dir_comp):
     dataframes = []  # a list to hold all the individual pandas DataFrames
     for filename in config_stat_files:
         df = pd.read_csv(filename)  # assumes .dat files are CSV-formatted
-
-        # Extract directory name and add it as a new column
-        directory_name = os.path.basename(os.path.dirname(filename))
-        df['Name'] = directory_name
-
-        dataframes.append(df)
+        seq_file_loc=f'{os.path.basename(os.path.dirname(filename))}/{dest_file}'
+        protein_name=search_csv_sequence_return_name(seq_file_loc)
+        if protein_name in (os.path.dirname(filename)):
+            df['Name'] = protein_name
+            dataframes.append(df)
+        else:
+            print("Protein dir name and Protein sequence name mismatch error!")
 
     # Concatenate them all together
     result = pd.concat(dataframes, ignore_index=True)

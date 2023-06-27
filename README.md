@@ -726,7 +726,7 @@ The `hoomd_w_panda` environment is used for data organization and computation, w
 
 
 Lines of interest for my_env are 162 and 163.
-###my_envc packages,version(does not have conda list output)
+### `my_env` packages, version (does not have conda list output)
 
 <table>
   <tr>

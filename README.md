@@ -14,6 +14,47 @@ The `hoomd_w_panda` environment is used for data organization and computation, w
 
 ### `hoomd_w_panda` packages, version, build, and channel (if no channel is specified, it should be downloadable with pip)
 
+
+<style>
+    .table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    
+    .table th, .table td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .table th {
+        background-color: #f2f2f2;
+    }
+</style>
+
+<table class="table">
+    <tr>
+        <th>Package</th>
+        <th>Version</th>
+        <th>Build</th>
+        <th>Channel</th>
+    </tr>
+    <tr>
+        <td>Example1</td>
+        <td>1.0.0</td>
+        <td>Build1</td>
+        <td>Channel1</td>
+    </tr>
+    <tr>
+        <td>Example2</td>
+        <td>2.0.0</td>
+        <td>Build2</td>
+        <td>Channel2</td>
+    </tr>
+</table>
+
+
+
 +----------------------+-----------------+---------------------------+-----------------------------------+
 |      Package         |     Version     |          Build            |             Channel               |
 +----------------------+-----------------+---------------------------+-----------------------------------+

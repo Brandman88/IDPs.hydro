@@ -13,130 +13,338 @@ Phase 1 requires the creation of two unique environments to ensure working capab
 The `hoomd_w_panda` environment is used for data organization and computation, while `my_env` is used for data analysis to produce more understandable information. The lines of interest for specifying these environments in the `hoomd_w_panda` are 160, 161, and 164.
 
 ### `hoomd_w_panda` packages, version, build, and channel (if no channel is specified, it should be downloadable with pip)
- Name                    Version                   Build  Channel
-_libgcc_mutex             0.1                        main
-attrs                     19.3.0                     py_0
-backcall                  0.1.0                    py37_0
-blas                      1.0                         mkl
-bleach                    3.1.0                    py37_0
-ca-certificates           2022.07.19           h06a4308_0
-certifi                   2022.9.14        py37h06a4308_0
-cudatoolkit               10.1.168                      0
-cycler                    0.10.0                   py37_0
-dbus                      1.13.12              h746ee38_0
-decorator                 4.4.1                      py_0
-defusedxml                0.6.0                      py_0
-embree3                   3.6.1                hc9558a2_0    conda-forge
-entrypoints               0.3                      py37_0
-expat                     2.2.6                he6710b0_0
-fontconfig                2.13.0               h9420a91_0
-freetype                  2.9.1                h8a8886c_1
-fresnel                   0.11.0           py37h9de70de_0    conda-forge
-freud                     2.0.0            py37hc9558a2_0    conda-forge
-glib                      2.56.2               hd408876_0
-gmp                       6.1.2                h6c8ec71_1
-gsd                       1.9.3            py37hc1659b7_0    conda-forge
-gst-plugins-base          1.14.0               hbbd80ab_1
-gstreamer                 1.14.0               hb453b48_1
-hoomd                     2.8.0            py37h9de70de_0    conda-forge
-icu                       58.2                 h9c2bf20_1
-importlib_metadata        0.23                     py37_0
-intel-openmp              2019.4                      243
-ipykernel                 5.1.3            py37h39e3cac_0
-ipython                   7.9.0            py37h39e3cac_0
-ipython_genutils          0.2.0                    py37_0
-ipywidgets                7.5.1                      py_0
-jedi                      0.15.1                   py37_0
-jinja2                    2.10.3                     py_0
-jpeg                      9b                   h024ee3a_2
-jsonschema                3.1.1                    py37_0
-jupyter                   1.0.0                    py37_7
-jupyter_client            5.3.4                    py37_0
-jupyter_console           6.0.0                    py37_0
-jupyter_core              4.6.0                    py37_0
-kiwisolver                1.1.0            py37he6710b0_0
-libedit                   3.1.20181209         hc058e9b_0
-libffi                    3.2.1                hd88cf55_4
-libgcc-ng                 9.1.0                hdf63c60_0
-libgfortran-ng            7.3.0                hdf63c60_0
-libpng                    1.6.37               hbc83047_0
-libsodium                 1.0.16               h1bed415_0
-libstdcxx-ng              9.1.0                hdf63c60_0
-libtiff                   4.0.10               h2733197_2
-libuuid                   1.0.3                h1bed415_2
-libxcb                    1.13                 h1bed415_1
-libxml2                   2.9.9                hea5a465_1
-markupsafe                1.1.1            py37h7b6447c_0
-matplotlib                3.1.1            py37h5429711_0
-mistune                   0.8.4            py37h7b6447c_0
-mkl                       2019.4                      243
-mkl-service               2.3.0            py37he904b0f_0
-mkl_fft                   1.0.14           py37ha843d7b_0
-mkl_random                1.1.0            py37hd6b4f25_0
-more-itertools            7.2.0                    py37_0
-mpi                       1.0                     openmpi    conda-forge
-nbconvert                 5.6.0                    py37_1
-nbformat                  4.4.0                    py37_0
-ncurses                   6.1                  he6710b0_1
-notebook                  6.0.1                    py37_0
-numpy                     1.17.2           py37haad9e8e_0
-numpy-base                1.17.2           py37hde5b4d6_0
-olefile                   0.46                     py37_0
-openmpi                   4.0.1                hc99cbb1_2    conda-forge
-openssl                   1.1.1q               h7f8727e_0
-pandas                    0.25.1                   pypi_0    pypi
-pandoc                    2.2.3.2                       0
-pandocfilters             1.4.2                    py37_1
-parso                     0.5.1                      py_0
-pcre                      8.43                 he6710b0_0
-pexpect                   4.7.0                    py37_0
-pickleshare               0.7.5                    py37_0
-pillow                    6.2.0            py37h34e0f95_0
-pip                       19.3.1                   py37_0
-prometheus_client         0.7.1                      py_0
-prompt_toolkit            2.0.10                     py_0
-ptyprocess                0.6.0                    py37_0
-pygments                  2.4.2                      py_0
-pyparsing                 2.4.2                      py_0
-pyqt                      5.9.2            py37h05f1152_2
-pyrsistent                0.15.4           py37h7b6447c_0
-python                    3.7.5                h0371630_0
-python-dateutil           2.8.0                    py37_0
-pytz                      2019.3                     py_0
-pyzmq                     18.1.0           py37he6710b0_0
-qhull                     2015.2            h6bb024c_1000    conda-forge
-qt                        5.9.7                h5867ecd_1
-qtconsole                 4.5.5                      py_0
-readline                  7.0                  h7b6447c_5
-rowan                     1.2.2                      py_1    conda-forge
-scipy                     1.3.1            py37h7c811a0_0
-send2trash                1.5.0                    py37_0
-setuptools                41.6.0                   py37_0
-sip                       4.19.8           py37hf484d3e_0
-six                       1.12.0                   py37_0
-sqlite                    3.30.1               h7b6447c_0
-tbb                       2019.9               hc9558a2_0    conda-forge
-tbb-devel                 2019.9               hc9558a2_0    conda-forge
-terminado                 0.8.2                    py37_0
-testpath                  0.4.2                    py37_0
-tk                        8.6.8                hbc83047_0
-tornado                   6.0.3            py37h7b6447c_0
-traitlets                 4.3.3                    py37_0
-wcwidth                   0.1.7                    py37_0
-webencodings              0.5.1                    py37_1
-wheel                     0.33.6                   py37_0
-widgetsnbextension        3.5.1                    py37_0
-xz                        5.2.4                h14c3975_4
-zeromq                    4.3.1                he6710b0_3
-zipp                      0.6.0                      py_0
-zlib                      1.2.11               h7b6447c_3
-zstd                      1.3.7                h0b5b093_0
+| Package            | Version     | Build         | Channel        |
+|--------------------|-------------|---------------|----------------|
+| _libgcc_mutex      | 0.1         | main          |                |
+| attrs              | 19.3.0      | py_0          |                |
+| backcall           | 0.1.0       | py37_0        |                |
+| blas               | 1.0         | mkl           |                |
+| bleach             | 3.1.0       | py37_0        |                |
+| ca-certificates    | 2022.07.19  | h06a4308_0    |                |
+| certifi            | 2022.9.14   | py37h06a4308_0|                |
+| cudatoolkit        | 10.1.168    | 0             |                |
+| cycler             | 0.10.0      | py37_0        |                |
+| dbus               | 1.13.12     | h746ee38_0    |                |
+| decorator          | 4.4.1       | py_0          |                |
+| defusedxml         | 0.6.0       | py_0          |                |
+| embree3            | 3.6.1       | hc9558a2_0    | conda-forge    |
+| entrypoints        | 0.3         | py37_0        |                |
+| expat              | 2.2.6       | he6710b0_0    |                |
+| fontconfig         | 2.13.0      | h9420a91_0    |                |
+| freetype           | 2.9.1       | h8a8886c_1    |                |
+| fresnel            | 0.11.0      | py37h9de70de_0| conda-forge    |
+| freud              | 2.0.0       | py37hc9558a2_0| conda-forge    |
+| glib               | 2.56.2      | hd408876_0    |                |
+| gmp                | 6.1.2       | h6c8ec71_1    |                |
+| gsd                | 1.9.3       | py37hc1659b7_0| conda-forge    |
+| gst-plugins-base   | 1.14.0      | hbbd80ab_1    |                |
+| gstreamer          | 1.14.0      | hb453b48_1    |                |
+| hoomd              | 2.8.0       | py37h9de70de_0| conda-forge    |
+| icu                | 58.2        | h9c2bf20_1    |                |
+| importlib_metadata | 0.23        | py37_0        |                |
+| intel-openmp       | 2019.4      | 243           |                |
+| ipykernel          | 5.1.3       | py37h39e3cac_0|                |
+| ipython            | 7.9.0       | py37h39e3cac_0|                |
+| ipython_genutils   | 0.2.0       | py37_0        |                |
+| ipywidgets         | 7.5.1       | py_0          |                |
+| jedi               | 0.15.1      | py37_0        |                |
+| jinja2             | 2.10.3      | py_0          |                |
+| jpeg               | 9b          | h024ee3a_2    |                |
+| jsonschema         | 3.1.1       | py37_0        |                |
+| jupyter            | 1.0.0       | py37_7        |                |
+| jupyter_client     | 5.3.4       | py37_0        |                |
+| jupyter_console    | 6.0.0       | py37_0        |                |
+| jupyter_core       | 4.6.0       | py37_0        |                |
+| kiwisolver         | 1.1.0       | py37he6710b0_0|                |
+| libedit            | 3.1.20181209| hc058e9b_0   |                |
+| libffi             | 3.2.1       | hd88cf55_4    |                |
+| libgcc-ng          | 9.1.0       | hdf63c60_0    |                |
+| libgfortran-ng     | 7.3.0       | hdf63c60_0    |                |
+| libpng             | 1.6.37      | hbc83047_0    |                |
+| libsodium          | 1.0.16      | h1bed415_0    |                |
+| libstdc++          | 9.1.0       | hdf63c60_0    |                |
+| libtiff            | 4.0.10      | h2733197_2    |                |
+| libuuid            | 1.0.3       | h1bed415_2    |                |
+| libxcb             | 1.13        | h1bed415_1    |                |
+| libxml2            | 2.9.9       | hea5a465_1    |                |
+| llvmlite           | 0.30.0      | py37hd408876_1|                |
+| markupsafe         | 1.1.1       | py37h7b6447c_0|                |
+| matplotlib-base    | 3.1.1       | py37he716670_0|                |
+| mistune            | 0.8.4       | py37h7b6447c_0|                |
+| mkl                | 2019.4      | 243           |                |
+| mkl-service        | 2.3.0       | py37he904b0f_0|                |
+| mkl_fft            | 1.0.14      | py37ha843d7b_0|                |
+| mkl_random         | 1.1.0       | py37hd6b4f25_0|                |
+| multidict          | 4.7.6       | py37h7b6447c_0|                |
+| nbconvert          | 5.6.1       | py37_0        |                |
+| nbformat           | 4.4.0       | py37_0        |                |
+| ncurses            | 6.1         | he6710b0_1    |                |
+| notebook           | 6.0.2       | py37_0        |                |
+| numpy              | 1.17.4      | py37hc1035e2_0|                |
+| numpy-base         | 1.17.4      | py37hde5b4d6_0|                |
+| olefile            | 0.46        | py37_0        |                |
+| openssl            | 1.1.1l      | h7f8727e_0    |                |
+| packaging          | 19.2        | py37_0        |                |
+| pandas             | 0.25.3      | py37he6710b0_0|                |
+| pandoc             | 2.2.3.2     | 0             |                |
+| pango              | 1.42.4      | ha14c397_0    |                |
+| parso              | 0.5.1       | py_0          |                |
+| pcre               | 8.43        | he6710b0_0    |                |
+| pexpect            | 4.7.0       | py37_0        |                |
+| pickleshare        | 0.7.5       | py37_0        |                |
+| pillow             | 6.2.0       | py37h34e0f95_0|                |
+| pip                | 19.3.1      | py37_0        |                |
+| prometheus_client  | 0.7.1       | py37_0        |                |
+| prompt_toolkit     | 2.0.10      | py37_0        |                |
+| pthread-stubs      | 0.4         | h14c3975_1001 |                |
+| ptyprocess         | 0.6.0       | py37_0        |                |
+| pygments           | 2.4.2       | py37_0        |                |
+| pyqt               | 5.9.2       | py37h05f1152_2|                |
+| python             | 3.7.4       | h265db76_1    |                |
+| python-dateutil    | 2.8.0       | py37_0        |                |
+| pytorch            | 1.3.1       | py3.7_cuda10.1.168_cudnn7.5.1_0| pytorch |
+| pytz               | 2019.3      | py_0          |                |
+| pyzmq              | 18.1.0      | py37he6710b0_0|                |
+| qt                 | 5.9.7       | h5867ecd_1    |                |
+| qtconsole          | 4.5.5       | py37_0        |                |
+| readline           | 7.0         | h7b6447c_5    |                |
+| requests           | 2.22.0      | py37_1        |                |
+| scikit-learn       | 0.21.3      | py37hd81dba3_0|                |
+| scipy              | 1.3.1       | py37h7c811a0_0|                |
+| setuptools         | 41.4.0      | py37_0        |                |
+| sip                | 4.19.8      | py37hf484d3e_0|                |
+| six                | 1.12.0      | py37_0        |                |
+| sqlite             | 3.30.0      | h7b6447c_0    |                |
+| tblib              | 1.4.0       | py37_0        |                |
+| tensorboard        | 2.4.1       | py37h06a4308_0|                |
+| terminado          | 0.8.2       | py37_0        |                |
+| testpath           | 0.4.2       | py_0          |                |
+| tk                 | 8.6.8       | hbc83047_0    |                |
+| toolz              | 0.10.0      | py_0          |                |
+| tornado            | 6.0.3       | py37h7b6447c_0|                |
+| traitlets          | 4.3.3       | py37_0        |                |
+| urllib3            | 1.24.2      | py37_0        |                |
+| wcwidth            | 0.1.7       | py37_0        |                |
+| webencodings       | 0.5.1       | py37_1        |                |
+| wheel              | 0.33.6      | py37_0        |                |
+| xz                 | 5.2.4       | h14c3975_4    |                |
+| yaml               | 0.1.7       | had09818_2    |                |
+| zeromq             | 4.3.2       | he6710b0_2    |                |
+| zlib               | 1.2.11      | h7b6447c_3    |                |
+| zstd               | 1.3.7       | h0b5b093_0    |                |
+
+
+
++----------------------+-----------------+---------------------------+-----------------------------------+
+|        Name          |     Version     |           Build           |             Channel               |
++----------------------+-----------------+---------------------------+-----------------------------------+
+|    _libgcc_mutex     |     0.1         |        main               |         defaults                  |
+|        attrs         |    19.3.0       |        py_0               |         defaults                  |
+|      backcall        |    0.1.0        |       py37_0              |         defaults                  |
+|        blas         |     1.0      |        mkl         |         defaults         |
+|       bleach        |    3.1.0     |       py37_0       |         defaults         |
+|  ca-certificates    | 2022.07.19  |    h06a4308_0       |         defaults         |
+|       certifi       |  2022.9.14  |  py37h06a4308_0     |         defaults         |
+|     cudatoolkit     |  10.1.168   |         0           |         defaults         |
+|       cycler        |    0.10.0    |       py37_0       |         defaults         |
+|        dbus         |   1.13.12    |    h746ee38_0      |         defaults         |
+|      decorator      |    4.4.1     |        py_0        |         defaults         |
+|     defusedxml      |    0.6.0     |        py_0        |         defaults         |
+|      embree3        |    3.6.1     |    hc9558a2_0      |     conda-forge          |
+|     entrypoints     |     0.3      |       py37_0       |         defaults         |
+|       expat         |    2.2.6     |    he6710b0_0      |         defaults         |
+|     fontconfig      |    2.13.0    |    h9420a91_0      |         defaults         |
+|      freetype       |    2.9.1     |    h8a8886c_1      |         defaults         |
+|       fresnel       |    0.11.0    | py37h9de70de_0     |     conda-forge          |
+|        freud        |    2.0.0     | py37hc9558a2_0     |     conda-forge          |
+|        glib         |    2.56.2    |    hd408876_0      |         defaults         |
+|        gmp          |    6.1.2     |    h6c8ec71_1      |         defaults         |
+|        gsd          |    1.9.3     | py37hc1659b7_0     |     conda-forge          |
+|  gst-plugins-base   |    1.14.0    |    hbbd80ab_1      |         defaults         |
+|      gstreamer      |    1.14.0    |    hb453b48_1      |         defaults         |
+|       hoomd         |    2.8.0     | py37h9de70de_0     |     conda-forge          |
+|        icu          |    58.2      |    h9c2bf20_1      |         defaults         |
+
++----------------------+-----------------+---------------------------+-----------------------------------+
+|        Name          |     Version     |          Build            |             Channel               |
++----------------------+-----------------+---------------------------+-----------------------------------+
+|   _libgcc_mutex      |      0.1        |          main             |            defaults               |
+|        attrs         |     19.3.0      |          py_0             |            defaults               |
+|      backcall        |     0.1.0       |         py37_0            |            defaults               |
+|        blas          |      1.0        |          mkl              |                                   |
+|       bleach         |     3.1.0       |         py37_0            |            defaults               |
+|  ca-certificates     |    2022.07.19   |        h06a4308_0         |                                   |
+|       certifi        |    2022.9.14    |       py37h06a4308_0      |                                   |
+|    cudatoolkit       |    10.1.168     |            0              |                                   |
+|       cycler         |     0.10.0      |         py37_0            |                                   |
+|        dbus          |     1.13.12     |      h746ee38_0           |                                   |
+|      decorator       |     4.4.1       |         py_0              |                                   |
+|     defusedxml       |     0.6.0       |         py_0              |                                   |
+|      embree3         |     3.6.1       |       hc9558a2_0          |           conda-forge             |
+|    entrypoints       |      0.3        |        py37_0             |                                   |
+|       expat          |      2.2.6      |        he6710b0_0         |                                   |
+|     fontconfig       |     2.13.0      |       h9420a91_0          |                                   |
+|      freetype        |     2.9.1       |       h8a8886c_1          |                                   |
+|      fresnel         |     0.11.0      |       py37h9de70de_0      |           conda-forge             |
+|        freud         |     2.0.0       |       py37hc9558a2_0      |           conda-forge             |
+|        glib          |     2.56.2      |       hd408876_0          |                                   |
+|         gmp          |     6.1.2       |       h6c8ec71_1          |                                   |
+|         gsd          |     1.9.3       |       py37hc1659b7_0      |           conda-forge             |
+| gst-plugins-base     |     1.14.0      |       hbbd80ab_1          |                                   |
+|      gstreamer       |     1.14.0      |       hb453b48_1          |                                   |
+|        hoomd         |     2.8.0       |       py37h9de70de_0      |           conda-forge             |
+|         icu          |      58.2       |       h9c2bf20_1          |                                   |
+| importlib_metadata   |      0.23       |        py37_0             |                                   |
+|  intel-openmp        |     2019.4      |            243            |                                   |
+|     ipykernel        |     5.1.3       |      py37h39e3cac_0       |                                   |
+|      ipython         |     7.9.0       |      py37h39e3cac_0       |                                   |
+|  ipython_genutils    |     0.2.0       |          py37_0           |                                   |
+|     ipywidgets       |     7.5.1       |            py_0           |                                   |
+|        jedi          |     0.15.1      |          py37_0           |                                   |
+|       jinja2         |     2.10.3      |            py_0           |                                   |
+|        jpeg          |      9b         |       h024ee3a_2          |                                   |
+|     jsonschema       |     3.1.1       |          py37_0           |                                   |
+|      jupyter         |     1.0.0       |          py37_7           |                                   |
+|   jupyter_client     |     5.3.4       |          py37_0           |                                   |
+|  jupyter_console     |     6.0.0       |          py37_0           |                                   |
+|    jupyter_core      |     4.6.0       |          py37_0           |                                   |
+|     kiwisolver       |     1.1.0       |       py37he6710b0_0      |                                   |
+|       libedit        |   3.1.20181209  |         hc058e9b_0        |                                   |
+|       libffi         |     3.2.1       |        hd88cf55_4         |                                   |
+|      libgcc-ng       |     9.1.0       |        hdf63c60_0         |                                   |
+|  libgfortran-ng      |     7.3.0       |        hdf63c60_0         |                                   |
+|       libpng         |    1.6.37       |        hbc83047_0         |                                   |
+|      libsodium       |    1.0.16       |        h1bed415_0         |                                   |
+|    libstdcxx-ng      |     9.1.0       |        hdf63c60_0         |                                   |
+|       libtiff        |    4.0.10       |        h2733197_2         |                                   |
+|       libuuid        |     1.0.3       |        h1bed415_2         |                                   |
+|        libxcb        |     1.13        |        h1bed415_1         |                                   |
+|       libxml2        |     2.9.9       |        hea5a465_1         |                                   |
+|     markupsafe       |     1.1.1       |       py37h7b6447c_0      |                                   |
+|    matplotlib        |     3.1.1       |       py37h5429711_0      |                                   |
+|      mistune         |     0.8.4       |       py37h7b6447c_0      |                                   |
+|         mkl          |     2019.4      |            243            |                                   |
+|    mkl-service       |     2.3.0       |       py37he904b0f_0      |                                   |
+|      mkl_fft         |     1.0.14      |       py37ha843d7b_0      |                                   |
+|      mkl_random      |     1.1.0       |       py37hd6b4f25_0      |                                   |
+|    more-itertools    |     7.2.0       |          py37_0           |                                   |
+|         mpi          |      1.0        |          openmpi          |           conda-forge             |
+|     nbconvert        |     5.6.0       |          py37_1           |                                   |
+|      nbformat        |     4.4.0       |          py37_0           |                                   |
+|       ncurses        |      6.1        |       he6710b0_1          |                                   |
+|      notebook        |     6.0.1       |          py37_0           |                                   |
+|        numpy         |    1.17.2       |      py37haad9e8e_0       |                                   |
+|     numpy-base       |    1.17.2       |      py37hde5b4d6_0       |                                   |
+|       olefile        |     0.46        |         py37_0            |                                   |
+|       openmpi        |     4.0.1       |         hc99cbb1_2        |           conda-forge             |
+|      openssl         |    1.1.1q       |       h7f8727e_0          |                                   |
+|       pandas         |     0.25.1      |          pypi_0           |               pypi                |
+|      pandoc          |     2.2.3.2     |             0             |                                   |
+|  pandocfilters       |     1.4.2       |         py37_1            |                                   |
+|       parso          |     0.5.1       |          py_0             |                                   |
+|        pcre          |      8.43       |       he6710b0_0          |                                   |
+|      pexpect         |     4.7.0       |         py37_0            |                                   |
+|    pickleshare       |     0.7.5       |         py37_0            |                                   |
+|       pillow         |     6.2.0       |     py37h34e0f95_0        |                                   |
+|        pip           |     19.3.1      |         py37_0            |                                   |
+| prometheus_client    |     0.7.1       |          py_0             |                                   |
+|  prompt_toolkit      |     2.0.10      |          py_0             |                                   |
+|    ptyprocess        |     0.6.0       |         py37_0            |                                   |
+|      pygments        |     2.4.2       |          py_0             |                                   |
+|     pyparsing        |     2.4.2       |          py_0             |                                   |
+|        pyqt          |     5.9.2       |     py37h05f1152_2        |                                   |
+|     pyrsistent       |     0.15.4      |     py37h7b6447c_0        |                                   |
+|       python         |     3.7.5       |     h0371630_0            |                                   |
+|  python-dateutil     |     2.8.0       |         py37_0            |                                   |
+|        pytz          |     2019.3      |          py_0             |                                   |
+|       pyzmq          |     18.1.0      |     py37he6710b0_0        |                                   |
+|       qhull          |     2015.2      |     h6bb024c_1000         |           conda-forge             |
+|         qt           |     5.9.7       |     h5867ecd_1            |                                   |
+|     qtconsole        |     4.5.5       |          py_0             |                                   |
+|      readline        |      7.0        |       h7b6447c_5          |                                   |
+|        rowan         |     1.2.2       |          py_1             |           conda-forge             |
+|       scipy          |     1.3.1       |      py37h7c811a0_0       |                                   |
+|     send2trash       |     1.5.0       |         py37_0            |                                   |
+|     setuptools       |     41.6.0      |         py37_0            |                                   |
+|        sip           |     4.19.8      |      py37hf484d3e_0       |                                   |
+|        six           |     1.12.0      |         py37_0            |                                   |
+|      sqlite          |     3.30.1      |       h7b6447c_0          |                                   |
+|        tbb           |     2019.9      |       hc9558a2_0          |           conda-forge             |
+|     tbb-devel        |     2019.9      |       hc9558a2_0          |           conda-forge             |
+|     terminado        |     0.8.2       |         py37_0            |                                   |
+|      testpath        |     0.4.2       |         py37_0            |                                   |
+|         tk           |     8.6.8       |       hbc83047_0          |                                   |
+|      tornado         |     6.0.3       |      py37h7b6447c_0       |                                   |
+|     traitlets        |     4.3.3       |         py37_0            |                                   |
+|       wcwidth        |     0.1.7       |         py37_0            |                                   |
+|    webencodings      |     0.5.1       |         py37_1            |                                   |
+|       wheel          |     0.33.6      |         py37_0            |                                   |
+| widgetsnbextension   |     3.5.1       |         py37_0            |                                   |
+|         xz           |     5.2.4       |        h14c3975_4         |                                   |
+|       zeromq         |     4.3.1       |        he6710b0_3         |                                   |
+|        zipp          |     0.6.0       |          py_0             |                                   |
+|        zlib          |     1.2.11      |        h7b6447c_3         |                                   |
+|        zstd          |     1.3.7       |        h0b5b093_0         |                                   |
++----------------------+-----------------+---------------------------+-----------------------------------+
 
 
 
 
 Lines of interest for my_env are 162 and 163.
 ###my_envc packages,version(does not have conda list output)
+
+
+
+
+
+|                     absl-py                       |     0.9.0     |
+|                    alabaster                      |    0.7.12     |
+|                anaconda-client                    |     1.7.2     |
+|                anaconda-navigator                 |    1.9.12     |
+|                anaconda-project                   |     0.8.3     |
+|                      argh                         |    0.26.2     |
+|                  argon2-cffi                      |    20.1.0     |
+|                   asn1crypto                      |     1.4.0     |
+|                    astroid                        |     2.4.2     |
+|                    astropy                        |  4.0.1.post1  |
+|               async-generator                     |     1.10      |
+|                 atomicwrites                      |     1.4.0     |
+|                     attrs                         |    20.2.0     |
+|                    autopep8                       |    1.5.4      |
+|                     Babel                         |     2.8.0     |
+|                    backcall                       |     0.2.0     |
+|          backports.functools-lru-cache            |    1.6.1      |
+|         backports.shutil-get-terminal-size        |     1.0.0     |
+|               backports.tempfile                  |      1.0      |
+|               backports.weakref                   |   1.0.post1   |
+|                    basemap                        |    1.2.1      |
+|                  beautifulsoup4                   |     4.9.3     |
+|                   biopython                       |     1.81      |
+|                    bitarray                       |     1.5.3     |
+|                     beautifulsoup4                |     4.9.3     |
+|                       biopython                       |     1.81      |
+|                       bitarray                        |     1.5.3     |
+|                       bkcharts                        |      0.2      |
+|                        bleach                         |     3.2.1     |
+|                         bokeh                         |     2.2.1     |
+|                          boto                          |    2.49.0     |
+|                      Bottleneck                       |    1.3.2      |
+|                       brotlipy                        |     0.7.0     |
+|                        certifi                        | 2022.5.18.1  |
+|                         cffi                          |    1.14.3     |
+|                        chardet                        |    3.0.4      |
+|                         click                         |     7.1.2     |
+|                      cloudpickle                      |    1.6.0      |
+|                        clyent                         |     1.2.2     |
+|                       color
+
+
+|```
+
+Please note that this excerpt only includes the first few packages from the provided data. Let me know if you'd like to see the full list in this format.
+
+
+
 
 absl-py                            0.9.0
 alabaster                          0.7.12

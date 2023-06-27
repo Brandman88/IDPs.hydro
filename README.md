@@ -1,9 +1,9 @@
 # IDPs.hydro
-####This project could not be possible without the collaboration of [Swarnadeep Seth](targetURL "https://www.linkedin.com/in/swarnadeepseth/") and [their extensive knowledge in related fields](targetURL "https://swarnadeepseth.github.io/")
+####This project could not have been possible without the collaboration of [Swarnadeep Seth](targetURL "https://www.linkedin.com/in/swarnadeepseth/") and [their extensive knowledge in related fields](targetURL "https://swarnadeepseth.github.io/")
 This project has two main sections; Phase 1 and Phase 2.
 ##Phase 1
 This is the data gathering phase, all the data is calculated and organized for the user.
-Note: Phase 1 is designed to be ran on a super computer using slurm
+Note: Phase 1 is designed to be run on a super computer using slurm
 Phase 1 does require two unique environments to be created to ensure working capabilies; The environments are hoomd_w_panda and my_env.
 If you do not care for these names or need to specify your particular modules, you will need to change the run_code.py file commands list(located 159-165). 
 hoomd_w_panda is for organization of data and data computation whilst my_env is for analysis of data to produce information more understandable.

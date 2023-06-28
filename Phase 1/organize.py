@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import glob
 import matplotlib.pyplot as plt
+import re
 
 parameters="multi_run.dat"
 #num_run is first number, says how many runs are we doing?
@@ -526,14 +527,13 @@ def search_csv_sequence_return_name(file_location_protein_sequence,dest_required
     file.close()
     csv_dictionary=read_entire_csv_return_dict()
     i=0
+    matching_rows=[]
     for row in csv_dictionary:
         if row['Sequence']==read_sequence:
             protein_name=row['Name']
-            match_num=i
-            break
-        else:
-            i+=1
-    return protein_name,match_num
+            matching_rows.append(i)
+        i+=1
+    return protein_name,matching_rows
 
 def write_csv_sequence_to_1LC(dest_file="1LC.txt"):
     num_run,start,marker,clean_list=read_multi_run()
@@ -544,61 +544,93 @@ def write_csv_sequence_to_1LC(dest_file="1LC.txt"):
     # Close the file
     file.close()
 
-def read_dat_files_data_merger_create_csv(csv_file, dir_comp=dir_comp):
+def get_csv_headers(csv_file):
     """
-    This function reads .dat files from given directory, merges them, 
+    This function reads a CSV file and returns all the headers as a list.
+
+    :param csv_file: Location of the CSV file
+    :return: List of headers
+    """
+    try:
+        df = pd.read_csv(csv_file)
+        headers = df.columns.tolist()
+        return headers
+    except FileNotFoundError:
+        print(f"File not found: {csv_file}")
+        return []
+
+def get_unique_and_matching_headers_relative_to_first_csv_file(csv_file1, csv_file2):
+    """
+    This function takes two CSV files, retrieves the headers from each file,
+    and returns a list of headers that are in the first CSV file but not in the second CSV file.
+
+    :param csv_file1: Location of the first CSV file
+    :param csv_file2: Location of the second CSV file
+    :return: List of unique headers in the first CSV file
+    """
+    headers1 = get_csv_headers(csv_file1)
+    headers2 = get_csv_headers(csv_file2)
+
+    unique_headers = [header for header in headers1 if header not in headers2]
+    matching_headers=[header for header in headers1 if header in headers2]
+    return unique_headers,matching_headers    
+ 
+def read_dat_files_data_merger_create_csv(csv_file="data.csv", dir_comp=dir_comp):
+    """
+    This function reads .dat files from the given directory, merges them,
     and then merges the resulting DataFrame with data from a CSV file.
 
     :param csv_file: Location of the CSV file to merge data with
     :param dir_comp: The directory where the .dat files are located
     """
 
-    # Use glob to get all the .dat files in subdirectories 
+    # Use glob to get all the .dat files in subdirectories
     config_stat_files = glob.glob(f'{dir_comp}/**/config_stat.dat', recursive=True)
+    csv_data = pd.read_csv(csv_file)
 
     # Loop through the files and read them in with pandas
     dataframes = []  # a list to hold all the individual pandas DataFrames
+    print(config_stat_files)
     for filename in config_stat_files:
+        print(filename)
         df = pd.read_csv(filename)  # assumes .dat files are CSV-formatted
-        seq_file_loc=f'{os.path.basename(os.path.dirname(filename))}/{dest_file}'
-        protein_name=search_csv_sequence_return_name(seq_file_loc)
-        if protein_name in (os.path.dirname(filename)):
-            df['Name'] = protein_name
-            dataframes.append(df)
+        seq_file_loc = f'{dir_comp}/{os.path.basename(os.path.dirname(filename))}/{dest_file}'
+        print(seq_file_loc)
+        protein_name, matching_rows = search_csv_sequence_return_name(seq_file_loc)
+
+        dir_name = os.path.basename(os.path.dirname(filename))
+        dir_name_without_protein = dir_name.replace(protein_name, '').strip()
+
+        # Extract the instance number from the directory name
+        instance_number = None
+        match = re.search(r'_(\d+)$', dir_name_without_protein)
+        if match:
+            instance_number = int(match.group(1))
+            matching_array_value = instance_number - 1
         else:
-            print("Protein dir name and Protein sequence name mismatch error!")
+            matching_array_value = 0
+        print(f"Matching Rows: {matching_rows}")
+        print(f"Matching Array Value: {matching_array_value}")
+        print(f"Matching Row given Matching Array Value: {matching_rows[matching_array_value]}")
 
-    # Concatenate them all together
-    result = pd.concat(dataframes, ignore_index=True)
+        non_matching_headers = set(df.columns) - set(csv_data.columns)
+        df_subset = df[non_matching_headers].copy()  # Select only the non-matching columns from df
+        df_subset.index = [matching_rows[matching_array_value]]  # Wrap the value in a list to create a single-item collection
 
-    # Read the CSV file
-    csv_data = pd.read_csv(csv_file)
+        # Format the values as floats with a maximum of 3 decimal places
+        df_subset = df_subset.applymap(lambda x: int(x) if round(float(x), 3).is_integer() else round(float(x), 3))
+        dataframes.append(df_subset)  # Append the subset DataFrame to the list of dataframes
 
-    # Merge the data from the CSV file with the data from .dat files
-    merged_data = pd.merge(result, csv_data, on='Name')
+    # Concatenate all the dataframes together
+    merged_data = pd.concat(dataframes)
+
+    # Merge with the original csv_data
+    merged_data = pd.merge(csv_data, merged_data, left_index=True, right_index=True, how='left')
+    merged_data['# ParticleN'] = merged_data['# ParticleN'].fillna(0).astype(int)
 
     # Write it out
     merged_data.to_csv('merged_config_stat_results.csv', index=False)
-    
-def plot_something_2locations_relative_to_one_variable(variable,loc1,loc2,dependent,independent):
-    # Read the data from the CSV files
-    data_df = pd.read_csv(loc1)
-    config_df = pd.read_csv(loc2)  # Add subdirectory to file path
-
-    # Merge the data based on matching names
-    merged_df = pd.merge(data_df, config_df, on=variable)
-
-    # Plot the data
-    plt.scatter(merged_df[independent], merged_df[dependent])
-    plt.xlabel(independent)
-    plt.ylabel(dependent)
-    plot_title=f'{dependent} vs {independent}'
-    plt.title(plot_title)
-    
-    # Save the plot
-    plt.savefig(f'{plot_title}.svg')
-     
-    
+         
 # Check if the parameters file exists
 if not os.path.exists(parameters):
     # If the parameters file does not exist, initialize it with default values, and also initialize the destination and debug files.

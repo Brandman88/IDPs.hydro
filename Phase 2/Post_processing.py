@@ -7,6 +7,7 @@ import glob
 import matplotlib.pyplot as plt
 import re
 import statistics
+import ast
 from matplotlib.lines import Line2D
 from math import *
 from random import *
@@ -401,6 +402,43 @@ def plot_something_location_relative_to_one_variable_trend():
     plt.savefig(safe_filename)
     plt.close()
 
+def plot_something_many_labels():
+    # Read the CSV file into a pandas DataFrame
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+    dependent = show_dictionary_keys_from_csv_choose(loc1, 'Dependent')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
+    label = show_dictionary_keys_from_csv_choose(loc1, 'Label')
+    df = pd.read_csv(loc1)
+
+    # Evaluate values and convert to floats
+    df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+    df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+    # Group the data by item name
+    grouped_data = df.groupby(label)
+
+    # Create a larger figure to plot all items
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Generate plots for each item with connected lines
+    for item_name, group in grouped_data:
+        # Scatter plot
+        ax.scatter(group[independent], group[dependent], label=item_name)
+
+        # Connect data points with lines
+        ax.plot(group[independent], group[dependent], label='Line for {}'.format(item_name))
+
+    ax.set_xlabel(independent)
+    ax.set_ylabel(dependent)
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    legend.get_frame().set_linewidth(0.5)  # Set legend frame linewidth
+    for text in legend.get_texts():
+        text.set_fontsize('small')  # Set legend font size to small
+
+    safe_filename = f'{dependent}_vs_{independent}_labeled_by_{label}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
 def sort_csv():
     
     csv_name=list_csv_files_in_directory_choose('Location of csv file')
@@ -611,6 +649,9 @@ def compare_csv_column():
     
     print(f'STD of Difference: {std_distance_from_true}')
     print(f'STD of ABS Difference: {std_distance_from_true_abs}')
+
+
+
 
 
 #plot_something_location_relative_to_one_variable_trend('<Rg>','K value')

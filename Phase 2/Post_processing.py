@@ -43,9 +43,18 @@ def get_definitions_useful():
     del definitions['list_csv_files_in_directory_choose']
     del definitions['list_py_files_in_directory_choose']
     del definitions['list_dat_files_in_directory_choose']
+    del definitions['list_directories_in_directory_choose']
     del definitions['get_common_dictionary_keys_choose']
     del definitions['get_common_dictionary_keys']
+    del definitions['search_csv_sequence_return_name']
+    del definitions['read_entire_csv_return_dict']
+    del definitions['choose_csv_headers_as_int']
     return definitions
+
+
+
+
+
 
 def get_common_dictionary_keys_choose(file1, file2, name):
     # Read the data from the CSV files
@@ -237,6 +246,34 @@ def list_dat_files_in_directory_choose():
             break
 
     return chosen_file
+
+def list_directories_in_directory_choose():
+    # Get the current directory
+    current_dir = os.getcwd()
+
+    # Get all directories in the current directory
+    directories = [dir_name for dir_name in os.listdir(current_dir) if os.path.isdir(os.path.join(current_dir, dir_name))]
+
+    if not directories:
+        print("No directories found in the current directory.")
+        return None
+
+    print("Directories:")
+    for index, dir_name in enumerate(directories, start=1):
+        print(f"{index}. {dir_name}")
+
+    # Prompt the user to choose a directory
+    while True:
+        dir_choice = input(f"Enter the number corresponding to the directory you want to choos: ")
+
+        if not dir_choice.isdigit() or int(dir_choice) not in range(1, len(directories) + 1):
+            print("Invalid choice. Please try again.")
+        else:
+            chosen_dir = directories[int(dir_choice) - 1]
+            print(f"Chosen directory: {chosen_dir}")
+            break
+
+    return chosen_dir
 
 def extract_number(s):
     # Find the first number in the string
@@ -650,7 +687,137 @@ def compare_csv_column():
     print(f'STD of Difference: {std_distance_from_true}')
     print(f'STD of ABS Difference: {std_distance_from_true_abs}')
 
+def read_entire_csv_return_dict(dest_required_file_csv = "data.csv"):
+    '''Define function to read entire CSV and return a dictionary.'''
+    # Using pandas to read the CSV file located at the destination provided.
+    df = pd.read_csv(dest_required_file_csv)
 
+    # Converting the dataframe into a list of dictionaries where each dictionary represents a row of data.
+    data = df.to_dict('records')
+
+    # Return the list of dictionaries
+    return data
+
+def search_csv_sequence_return_name(file_location_protein_sequence,dest_required_file_csv = "data.csv"):
+    '''Define function to grab specific column information from a specific row in the CSV.'''
+    
+    file = open(file_location_protein_sequence, 'r')
+    read_sequence=file.readline()
+    file.close()
+    csv_dictionary=read_entire_csv_return_dict()
+    i=0
+    matching_rows=[]
+    for row in csv_dictionary:
+        if row['Sequence']==read_sequence:
+            protein_name=row['Name']
+            matching_rows.append(i)
+        i+=1
+    return protein_name,matching_rows
+
+def choose_csv_headers_as_int(csv_data):
+    """
+    Asks the user if they want any information to be treated as an integer from the CSV headers.
+
+    :param csv_data: DataFrame containing the CSV data
+    :return: List of chosen headers to be treated as integers
+    """
+    headers = csv_data.columns.tolist()
+    chosen_headers = []
+
+    while True:
+        print("Do you want any information to be treated as an integer?")
+        response = input("Enter 'yes' or 'no': ")
+
+        if response.lower() == 'no':
+            break
+
+        if response.lower() != 'yes':
+            print("Invalid response. Please enter 'yes' or 'no'.")
+            continue
+
+        print("Choose from the following CSV headers:")
+        for index, header in enumerate(headers, start=1):
+            print(f"{index}. {header}")
+
+        while True:
+            choice = input("Enter the number corresponding to the header you want to choose (or '0' to finish): ")
+
+            if choice == '0':
+                break
+
+            if not choice.isdigit() or int(choice) not in range(1, len(headers) + 1):
+                print("Invalid choice. Please try again.")
+            else:
+                chosen_header = headers[int(choice) - 1]
+                chosen_headers.append(chosen_header)
+                headers.remove(chosen_header)
+                print(f"Chosen header: {chosen_header}")
+                break
+
+        if choice == '0':
+            break
+
+    return chosen_headers
+
+def read_dat_files_data_merger_create_csv():
+    """
+    This function reads .dat files from the given directory, merges them,
+    and then merges the resulting DataFrame with data from a CSV file.
+
+    :param csv_file: Location of the CSV file to merge data with
+    :param dir_comp: The directory where the .dat files are located
+    """
+    dest_file="1LC.txt"
+    csv_file = list_csv_files_in_directory_choose('Parent csv')
+    dir_comp=list_directories_in_directory_choose()
+    print(dir_comp)
+    # Use glob to get all the .dat files in subdirectories
+    config_stat_files = glob.glob(f'{dir_comp}/**/config_stat.dat', recursive=True)
+    csv_data = pd.read_csv(csv_file)
+
+    # Loop through the files and read them in with pandas
+    dataframes = []  # a list to hold all the individual pandas DataFrames
+    print(config_stat_files)
+    for filename in config_stat_files:
+        print(filename)
+        df = pd.read_csv(filename)  # assumes .dat files are CSV-formatted
+        seq_file_loc = f'{dir_comp}/{os.path.basename(os.path.dirname(filename))}/{dest_file}'
+        print(seq_file_loc)
+        protein_name, matching_rows = search_csv_sequence_return_name(seq_file_loc)
+
+        dir_name = os.path.basename(os.path.dirname(filename))
+        dir_name_without_protein = dir_name.replace(protein_name, '').strip()
+
+        # Extract the instance number from the directory name
+        instance_number = None
+        match = re.search(r'_(\d+)$', dir_name_without_protein)
+        if match:
+            instance_number = int(match.group(1))
+            matching_array_value = instance_number - 1
+        else:
+            matching_array_value = 0
+        print(f"Matching Rows: {matching_rows}")
+        print(f"Matching Array Value: {matching_array_value}")
+        print(f"Matching Row given Matching Array Value: {matching_rows[matching_array_value]}")
+
+        non_matching_headers = set(df.columns) - set(csv_data.columns)
+        df_subset = df[list(non_matching_headers)].copy()  # Select only the non-matching columns from df
+        df_subset.index = [matching_rows[matching_array_value]]  # Wrap the value in a list to create a single-item collection
+
+        # Format the values as floats with a maximum of 3 decimal places
+        df_subset = df_subset.applymap(lambda x: int(x) if round(float(x), 3).is_integer() else round(float(x), 3))
+        dataframes.append(df_subset)  # Append the subset DataFrame to the list of dataframes
+
+    # Concatenate all the dataframes together
+    merged_data = pd.concat(dataframes)
+
+    # Merge with the original csv_data
+    merged_data = pd.merge(csv_data, merged_data, left_index=True, right_index=True, how='left')
+    int_list=choose_csv_headers_as_int(merged_data)
+    for item in int_list:
+        merged_data[item] = merged_data[item].fillna(0).astype(int)
+    # Write it out
+    merged_data.to_csv('merged_config_stat_results.csv', index=False)
 
 
 

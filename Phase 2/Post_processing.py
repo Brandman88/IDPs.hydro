@@ -6,12 +6,15 @@ import pandas as pd
 import glob
 import matplotlib.pyplot as plt
 import re
+import statistics
+import ast
 from matplotlib.lines import Line2D
 from math import *
 from random import *
 from scipy.stats import pearsonr
 import inspect
 from importlib.util import spec_from_file_location, module_from_spec
+
 
 
 def get_definitions():
@@ -399,6 +402,43 @@ def plot_something_location_relative_to_one_variable_trend():
     plt.savefig(safe_filename)
     plt.close()
 
+def plot_something_many_labels():
+    # Read the CSV file into a pandas DataFrame
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+    dependent = show_dictionary_keys_from_csv_choose(loc1, 'Dependent')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
+    label = show_dictionary_keys_from_csv_choose(loc1, 'Label')
+    df = pd.read_csv(loc1)
+
+    # Evaluate values and convert to floats
+    df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+    df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+    # Group the data by item name
+    grouped_data = df.groupby(label)
+
+    # Create a larger figure to plot all items
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Generate plots for each item with connected lines
+    for item_name, group in grouped_data:
+        # Scatter plot
+        ax.scatter(group[independent], group[dependent], label=item_name)
+
+        # Connect data points with lines
+        ax.plot(group[independent], group[dependent], label='Line for {}'.format(item_name))
+
+    ax.set_xlabel(independent)
+    ax.set_ylabel(dependent)
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    legend.get_frame().set_linewidth(0.5)  # Set legend frame linewidth
+    for text in legend.get_texts():
+        text.set_fontsize('small')  # Set legend font size to small
+
+    safe_filename = f'{dependent}_vs_{independent}_labeled_by_{label}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
 def sort_csv():
     
     csv_name=list_csv_files_in_directory_choose('Location of csv file')
@@ -545,6 +585,74 @@ def append_csv_files():
     appended_data.to_csv(output_file, index=False)
     print(f"CSV files appended successfully. Appended data exported to '{output_file}'.")
     print(f"Number of matches found: {match_count}")
+
+def compare_csv_column():
+    file1 = list_csv_files_in_directory_choose('True value')
+    file2 = list_csv_files_in_directory_choose('Experimental value')
+    column_name = get_common_dictionary_keys_choose(file1, file2, 'Linking Variable between data sets')
+
+    df1 = pd.read_csv(file1)
+    df2 = pd.read_csv(file2)
+
+    if column_name not in df1.columns or column_name not in df2.columns:
+        print(f"Column '{column_name}' not found in both CSV files.")
+        return
+
+    comp_name = get_common_dictionary_keys_choose(file1, file2, 'Variable desired to compare between data sets')
+
+    file1_list_of_column_name_entries = [str(item).strip() for item in df1[column_name].copy()]
+    file1_list_of_comp_name_entries = [round(float(str(item).strip()),3) for item in df1[comp_name].copy()]
+    
+    file1_dictionary = dict(zip(file1_list_of_column_name_entries, file1_list_of_comp_name_entries))
+
+    file2_list_of_column_name_entries = [str(item).strip() for item in df2[column_name].copy()]
+    file2_list_of_comp_name_entries = [round(float(str(item).strip()),3) for item in df2[comp_name].copy()]
+    
+    file2_dictionary = dict(zip(file2_list_of_column_name_entries, file2_list_of_comp_name_entries))
+    print(file1_dictionary)
+    print(file2_dictionary)
+    rows = []
+    distance_from_true_list = []
+    distance_from_true_abs_list = []
+
+    for key in file1_list_of_column_name_entries:
+        distance_from_true_list.append(float(float(file1_dictionary[key]) - float(file2_dictionary[key])))
+        distance_from_true_abs_list.append(abs(float(float(file1_dictionary[key]) - float(file2_dictionary[key]))))
+        print(f'{file1_dictionary[key]}   {file2_dictionary[key]}')
+    print(distance_from_true_list)
+    print(distance_from_true_abs_list)
+    
+
+    distance_from_true_list_size = len(distance_from_true_list)
+    distance_from_true_abs_list_size = len(distance_from_true_abs_list)
+
+    avg_distance_from_true = round(np.nanmean(distance_from_true_list),3) if distance_from_true_list_size > 0 else np.nan
+    avg_distance_from_true_abs = round(np.nanmean(distance_from_true_abs_list),3) if distance_from_true_abs_list_size > 0 else np.nan
+    std_distance_from_true = round(np.nanstd(distance_from_true_list),3) if distance_from_true_list_size > 0 else np.nan
+    std_distance_from_true_abs = round(np.nanstd(distance_from_true_abs_list),3) if distance_from_true_abs_list_size > 0 else np.nan
+
+    for key in file1_list_of_column_name_entries:
+        if key in file1_dictionary and key in file2_dictionary:
+            true_value = file1_dictionary[key]
+            exp_value = file2_dictionary[key]
+            distance_from_true = round(file1_dictionary[key] - file2_dictionary[key],3)
+            distance_from_true_abs = round(abs(distance_from_true),3)
+            distance_from_true_rel2_avg = round(distance_from_true / avg_distance_from_true_abs,3)
+            distance_from_true_abs_rel2_avg = round(distance_from_true_abs / avg_distance_from_true_abs,3)
+            rows.append([key, file1_dictionary[key], file2_dictionary[key], distance_from_true, distance_from_true_abs, distance_from_true_rel2_avg, distance_from_true_abs_rel2_avg])
+
+    columns = [f'{column_name}', f'{comp_name}_file1', f'{comp_name}_file2', 'Difference', 'Absolute Value Difference', 'Difference/(AVG Difference)', '(ABS Difference)/(ABS AVG Difference)']
+    df_results = pd.DataFrame(rows, columns=columns)
+
+    safe_filename = f'{comp_name}_comparison_via_{column_name}.csv'.replace("<", "").replace(">", "").replace(":", "")
+    df_results.to_csv(safe_filename, index=False)
+    
+    print(f'STD of Difference: {std_distance_from_true}')
+    print(f'STD of ABS Difference: {std_distance_from_true_abs}')
+
+
+
+
 
 #plot_something_location_relative_to_one_variable_trend('<Rg>','K value')
 #sort_csv('config_stat_results.csv','k Value')

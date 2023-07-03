@@ -52,6 +52,7 @@ def get_definitions_useful():
     del definitions['read_entire_csv_return_dict']
     del definitions['choose_csv_headers_as_int']
     del definitions['pick_from_list_static']
+    del definitions['pick_from_list_dynamic']
     del definitions['scale_axes']
     del definitions['choose_category_return_dict']
     return definitions    

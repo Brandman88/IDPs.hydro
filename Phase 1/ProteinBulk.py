@@ -117,14 +117,14 @@ def read_multi_run(parameters='multi_run.dat'):
     # Return the number of runs, start value, marker, and the cleaned list of lines
     return num_run,start,marker,clean_list
 
-
+box_size=eval(4*find_Protein_length())
 hoomd.context.initialize("");
 
 # ========================= System Parameters =======================================
 ParticleN=find_Protein_length() #imports number of ParticleN
 dimen = 3
 # Box Dimentions
-BOX_L = 300
+BOX_L = box_size
 
 #kappa = 0.0
 

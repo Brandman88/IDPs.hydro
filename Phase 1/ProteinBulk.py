@@ -137,8 +137,10 @@ T_Kelvin=float(row_specific_info_csv('Absolute Temperature'))
 # In kCal units
 KT = T_Kelvin*0.001987204259 # Boltzmann constant in kCal/mol/K
 EPSILON = 0.18 # KCal/mol
-
-ionic_concentration = float(eval(row_specific_info_csv('Ionic Concentration'))) # in M or mol/L	
+if row_specific_info_csv('Ionic Concentration')==int(row_specific_info_csv('Ionic Concentration')):
+    ionic_concentration = int(row_specific_info_csv('Ionic Concentration')) # in M or mol/L
+else:
+    ionic_concentration = float(eval(row_specific_info_csv('Ionic Concentration'))) # in M or mol/L	
 
 fepsw = lambda T : 5321/T+233.76-0.9297*T+0.1417*1e-2*T*T-0.8292*1e-6*T**3 #temperature dependent dielectric constant of water	
 epsw = fepsw(T_Kelvin) # dielectric constant of water at T 	

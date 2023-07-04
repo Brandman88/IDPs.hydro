@@ -124,7 +124,7 @@ hoomd.context.initialize("");
 ParticleN=find_Protein_length() #imports number of ParticleN
 dimen = 3
 # Box Dimentions
-BOX_L = 300
+BOX_L = box_size
 
 #kappa = 0.0
 

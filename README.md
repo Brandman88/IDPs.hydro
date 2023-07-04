@@ -24,19 +24,19 @@ The `hoomd_w_panda` environment is used for data organization and computation, w
     <td>_libgcc_mutex</td>
     <td>0.1</td>
     <td>main</td>
-    <td>defaults</td>
+    <td></td>
   </tr>
   <tr>
     <td>attrs</td>
     <td>19.3.0</td>
     <td>py_0</td>
-    <td>defaults</td>
+    <td></td>
   </tr>
   <tr>
     <td>backcall</td>
     <td>0.1.0</td>
     <td>py37_0</td>
-    <td>defaults</td>
+    <td></td>
   </tr>
   <tr>
     <td>blas</td>
@@ -48,7 +48,7 @@ The `hoomd_w_panda` environment is used for data organization and computation, w
     <td>bleach</td>
     <td>3.1.0</td>
     <td>py37_0</td>
-    <td>defaults</td>
+    <td></td>
   </tr>
   <tr>
     <td>ca-certificates</td>

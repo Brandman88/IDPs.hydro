@@ -1,6 +1,6 @@
 #!/bin/sh
-#SBATCH --nodes=3
-#SBATCH --time=72:00:00
+#SBATCH --nodes=1
+#SBATCH --time=18:00:00
 #SBATCH --job-name=hoomd
 #SBATCH --ntasks-per-node=8     # number of tasks per node
 #SBATCH --mail-type=begin        # send email when job begins

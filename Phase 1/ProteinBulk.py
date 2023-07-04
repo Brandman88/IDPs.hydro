@@ -137,7 +137,7 @@ T_Kelvin=float(row_specific_info_csv('Absolute Temperature'))
 # In kCal units
 KT = T_Kelvin*0.001987204259 # Boltzmann constant in kCal/mol/K
 EPSILON = 0.18 # KCal/mol
-if row_specific_info_csv('Ionic Concentration')==int(row_specific_info_csv('Ionic Concentration')):
+if row_specific_info_csv('Ionic Concentration').isdigit():
     ionic_concentration = int(row_specific_info_csv('Ionic Concentration')) # in M or mol/L
 else:
     ionic_concentration = float(eval(row_specific_info_csv('Ionic Concentration'))) # in M or mol/L	

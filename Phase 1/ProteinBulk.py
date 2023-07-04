@@ -137,10 +137,22 @@ T_Kelvin=float(row_specific_info_csv('Absolute Temperature'))
 # In kCal units
 KT = T_Kelvin*0.001987204259 # Boltzmann constant in kCal/mol/K
 EPSILON = 0.18 # KCal/mol
-if row_specific_info_csv('Ionic Concentration').isdigit():
-    ionic_concentration = int(row_specific_info_csv('Ionic Concentration')) # in M or mol/L
+
+ionic_concentration = row_specific_info_csv('Ionic Concentration')
+
+if isinstance(ionic_concentration, int):
+    ionic_concentration = int(ionic_concentration)  # Convert to int if it's already an integer
+elif isinstance(ionic_concentration, float):
+    ionic_concentration = float(ionic_concentration)  # Convert to float if it's already a float
 else:
-    ionic_concentration = float(eval(row_specific_info_csv('Ionic Concentration'))) # in M or mol/L	
+    try:
+        ionic_concentration = float(eval(ionic_concentration))  # Evaluate the string expression and convert to float
+    except (SyntaxError, NameError, TypeError, ValueError):
+        # Handle the case where the value cannot be evaluated or converted
+        # Set a default value or raise an exception, depending on your requirement
+        ionic_concentration = None  # or set a default value
+
+# Now you have the ionic_concentration variable as an integer or float, or None if it couldn't be evaluated or converted.
 
 fepsw = lambda T : 5321/T+233.76-0.9297*T+0.1417*1e-2*T*T-0.8292*1e-6*T**3 #temperature dependent dielectric constant of water	
 epsw = fepsw(T_Kelvin) # dielectric constant of water at T 	

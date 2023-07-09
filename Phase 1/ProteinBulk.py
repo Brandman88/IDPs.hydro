@@ -117,7 +117,7 @@ def read_multi_run(parameters='multi_run.dat'):
     # Return the number of runs, start value, marker, and the cleaned list of lines
     return num_run,start,marker,clean_list
 
-box_size=4*find_Protein_length()
+box_size=6*find_Protein_length()
 hoomd.context.initialize("");
 
 # ========================= System Parameters =======================================

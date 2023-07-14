@@ -2,7 +2,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=100:00:00
 #SBATCH --job-name=hoomd
-#SBATCH --cores-per-socket=8
+#SBATCH --cores-per-socket=48 # Very high number to force unused node instead of shared 
 #SBATCH --ntasks-per-node=4     # number of tasks per node
 #SBATCH --cpu-freq=HighM1[Performance]
 #SBATCH --shared

@@ -1,8 +1,11 @@
 #!/bin/sh
-#SBATCH --nodes=2
-#SBATCH --time=21:00:00
+#SBATCH --nodes=1
+#SBATCH --time=40:00:00
 #SBATCH --job-name=hoomd
-#SBATCH --ntasks-per-node=8     # number of tasks per node
+#SBATCH --cores-per-socket=8
+#SBATCH --ntasks-per-node=4     # number of tasks per node
+#SBATCH --cpu-freq=HighM1[Performance]
+#SBATCH --mem-per-cpu=5GB 
 #SBATCH --mail-type=begin        # send email when job begins
 #SBATCH --mail-type=end          # send email when job ends
 #SBATCH --mail-user=<brandon.stine@knights.ucf.edu>

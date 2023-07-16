@@ -1,11 +1,10 @@
 #!/bin/sh
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --time=100:00:00
 #SBATCH --job-name=hoomd
-#SBATCH --cores-per-socket=48 # Very high number to force unused node instead of shared 
-#SBATCH --ntasks-per-node=4     # number of tasks per node
-#SBATCH --cpu-freq=HighM1[Performance]
-#SBATCH --shared
+#SBATCH --cores-per-socket=14 # Very high number to force unused node instead of shared 
+#SBATCH --ntasks-per-node=1     # number of tasks per node
+#SBATCH --cpu-freq=HighM1
 #SBATCH --mem-per-cpu=16GB 
 #SBATCH --mail-type=begin        # send email when job begins
 #SBATCH --mail-type=end          # send email when job ends

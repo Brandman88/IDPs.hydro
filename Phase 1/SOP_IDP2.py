@@ -109,20 +109,41 @@ def read_multi_run(parameters='multi_run.dat'):
 
 num_run,start,marker,clean_list=read_multi_run()
 
+
+
+
 def parse_arguments_from_csv(start,filename='data_multi.csv'):
     df = pd.read_csv(filename)
-    arguments = df.to_dict('records')[start-1]
+    row_index = int(start) - 1  # Assuming start is a string representing the row number
+    arguments = df.iloc[row_index].to_dict()
+
+    # Convert NaN values to None
+    arguments = {k: v if pd.notna(v) else None for k, v in arguments.items()}
+
+    frequency = arguments['Frequency']
+    frequency_default = 10000  # Set your desired default value here
+
+    cutoff = arguments['Cutoff']
+    cutoff_default = 40.0  # Set your desired default value here
+    
+
+
+    # Convert frequency to int or use the default value
+    frequency = int(frequency) if frequency is not None else frequency_default
+    arguments['Frequency'] = frequency
+
+    cutoff = float(cutoff) if cutoff is not None else cutoff_default
+    arguments['Cutoff'] = cutoff
+
+
     return arguments
-
-
-
 
 KELVIN_TO_KT = unit.AVOGADRO_CONSTANT_NA * unit.BOLTZMANN_CONSTANT_kB / unit.kilocalorie_per_mole
 
 
 filename = 'data_multi.csv'  # Replace with your CSV file name
 
-arguments = parse_arguments_from_csv(filename)
+arguments = parse_arguments_from_csv(start,filename)
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description='Coarse-grained SOP_IDP simulation using OpenMM')

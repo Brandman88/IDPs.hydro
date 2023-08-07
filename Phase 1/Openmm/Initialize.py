@@ -85,7 +85,7 @@ def edit_multi_run(parameters,num_run,start,marker,list_files):
     # Close the file
     para.close()
     
-def read_entire_csv_return_dict_and_num_rows(dest_required_file_csv = "data.csv"):
+def read_entire_csv_return_dict_and_num_rows(dest_required_file_csv = "data_multi.csv"):
     # Read the CSV data
     df = pd.read_csv(dest_required_file_csv)
 

@@ -158,7 +158,7 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
 # Define the commands
 commands = [
     'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 organize.py',
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 ProteinBulk.py',
+    'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 SOP_IDP2.py',
     'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 long_config_analysis.py',
     'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 cm_fix.py',
     'module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 organize.py'

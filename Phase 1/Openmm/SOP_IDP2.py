@@ -112,7 +112,7 @@ num_run,start,marker,clean_list=read_multi_run()
 
 
 
-def parse_arguments_from_csv(start,filename='data_multi.csv'):
+def parse_arguments_from_csv(start,filename='multi_data.csv'):
     df = pd.read_csv(filename)
     row_index = int(start) - 1  # Assuming start is a string representing the row number
     arguments = df.iloc[row_index].to_dict()
@@ -141,7 +141,7 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
 KELVIN_TO_KT = unit.AVOGADRO_CONSTANT_NA * unit.BOLTZMANN_CONSTANT_kB / unit.kilocalorie_per_mole
 
 
-filename = 'data_multi.csv'  # Replace with your CSV file name
+filename = 'data.csv'  # Replace with your CSV file name
 
 arguments = parse_arguments_from_csv(start,filename)
 

@@ -10,7 +10,7 @@ import build
 import force
 import pandas as pd
 
-def read_entire_csv_return_dict(dest_required_file_csv = "data.csv"):
+def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''
     # Using pandas to read the CSV file located at the destination provided.
     df = pd.read_csv(dest_required_file_csv)
@@ -106,13 +106,10 @@ def read_multi_run(parameters='multi_run.dat'):
     return num_run,start,marker,clean_list
 
 
-
 num_run,start,marker,clean_list=read_multi_run()
 
 
-
-
-def parse_arguments_from_csv(start,filename='multi_data.csv'):
+def parse_arguments_from_csv(start,filename='data_multi.csv'):
     df = pd.read_csv(filename)
     row_index = int(start) - 1  # Assuming start is a string representing the row number
     arguments = df.iloc[row_index].to_dict()

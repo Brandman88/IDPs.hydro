@@ -27,8 +27,6 @@ if not os.path.exists(file_path_data):#preference is given to data.csv if both e
 else:
     file_path=file_path_data
     
-
-
 def execute_shell_command(command, output_file="debug_file.txt"):
     try:
         # Execute the shell command as a subprocess
@@ -84,20 +82,8 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
     except Exception as e:
         print(f"An error occurred while executing the command: {str(e)}")
         # Handle the exception as needed
-
-def find_stokes_num_from_hoomd_file():
-    """
-    Scans through the current directory for files starting with 'hoomd', strips the string 'hoomd-' and '.out' from the file name and converts the resultant string to an integer.
-    Returns this integer representing the hoomd number.
-    """
-    for file in os.listdir(os.getcwd()):  # Iterate over all files in the current directory
-        if file.startswith("hoomd"):  # If file name starts with 'hoomd'
-            file = file.replace('hoomd-', '').replace('.out', '').strip()  # Remove 'hoomd-' from the file name  # Remove '.out' from the file name
-            hoomd_number = int(file)  # Convert file name to integer
-    return hoomd_number
-        
-def your_equation(number_of_letters):
-    # Your specific equation
+     
+def est_time_equation(number_of_letters):
     estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
     return estimated_time
 
@@ -109,7 +95,7 @@ def process_csv(file_path):
     df['letters_count'] = df['Sequence'].apply(len)
 
     # Apply your equation to the temporary column to calculate the estimated time
-    df['estimated_time'] = df['letters_count'].apply(your_equation)
+    df['estimated_time'] = df['letters_count'].apply(est_time_equation)
 
     # Calculate the total estimated time
     total_estimated_time = df['estimated_time'].sum()
@@ -165,12 +151,19 @@ def get_unique_group_ids(df_with_groups):
     return unique_group_ids
 
 def copy_files_and_create_csv_by_group(df_with_groups, cur_dir, unique_group_ids, file_path):
+    
+        
     # Create the "Calculations" directory inside the current directory
     calculations_directory = os.path.join(cur_dir, 'Calculations')
     os.makedirs(calculations_directory, exist_ok=True)
 
-    # List all files in the current directory (excluding CSV files)
-    filenames = [f for f in os.listdir(cur_dir) if os.path.isfile(os.path.join(cur_dir, f)) and not f.endswith('.csv')]
+    if file_path==file_path_data:
+        # List all files in the  directory (excluding CSV files)
+        source_directory = os.path.join(cur_dir, 'Hoomd')
+        filenames = [f for f in os.listdir(source_directory) if os.path.isfile(os.path.join(source_directory, f)) and not f.endswith('.csv')]
+    else:
+        source_directory = os.path.join(cur_dir, 'Openmm')
+        filenames = [f for f in os.listdir(source_directory) if os.path.isfile(os.path.join(source_directory, f)) and not f.endswith('.csv')]
 
     for group_id in unique_group_ids:
         # Create a subdirectory for the group inside the "Calculations" directory
@@ -182,7 +175,7 @@ def copy_files_and_create_csv_by_group(df_with_groups, cur_dir, unique_group_ids
 
         # Copy the files to the group subdirectory
         for filename in filenames:
-            source_path = os.path.join(cur_dir, filename)
+            source_path = os.path.join(source_directory, filename)
             destination_path = os.path.join(group_directory, filename)
             shutil.copy2(source_path, destination_path)
 
@@ -247,6 +240,7 @@ def jump_start(group_ids, cur_dir):
     job_id_gather(group_ids, cur_dir)
     
 def job_id_gather(group_ids, cur_dir):
+    time.sleep(50)
     job_list=[]
     # Iterate through each group ID directory
     
@@ -258,16 +252,29 @@ def job_id_gather(group_ids, cur_dir):
 
         # Execute the specified shell commands
         print(f"Gathering Job Number of Group ID: {group_id}...")
-        job_list.append(find_stokes_num_from_hoomd_file())
+        temp=find_stokes_num_from_hoomd_file()
+        job_list.append(temp)
     # Return to the original working directory
     os.chdir(cur_dir)
     file_from_list(job_list,'Job_list.txt')
+
+def find_stokes_num_from_hoomd_file():
+    """
+    Scans through the current directory for files starting with 'hoomd', strips the string 'hoomd-' and '.out' from the file name and converts the resultant string to an integer.
+    Returns this integer representing the hoomd number.
+    """
+    for file in os.listdir(os.getcwd()):  # Iterate over all files in the current directory
+        if file.startswith("hoomd"):  # If file name starts with 'hoomd'
+            file = file.replace('hoomd-', '').replace('.out', '').strip()  # Remove 'hoomd-' from the file name  # Remove '.out' from the file name
+            hoomd_number = int(file)  # Convert file name to integer
+    return hoomd_number
     
 def file_from_list(temp_list,name_of_file):
     with open(name_of_file, 'w') as file:
         # Iterate through the list and write each element to the file
-        for fruit in temp_list:
-            file.write(fruit + '\n')
+        for item in temp_list:
+            temp=f"{item}\n"
+            file.write(temp)
     file.close()
 
 def display_group_estimated_times(df_with_groups, unique_group_ids):
@@ -286,6 +293,7 @@ def display_group_estimated_times(df_with_groups, unique_group_ids):
         print(f"Group ID: {group_id} - Estimated Time: {hours} hours, {minutes} minutes")
 
 
+
 df_sorted, total_time, average_time, max_time, num_rows = process_csv(file_path)
 print(f"Total Estimated Time: {total_time}")
 print(f"Average Estimated Time: {average_time}")
@@ -297,4 +305,4 @@ group_ids=get_unique_group_ids(df_grouped)
 copy_files_and_create_csv_by_group(df_grouped,cur_dir, group_ids,file_path)
 update_run_sh(group_ids, cur_dir, over_guess_percent, df_grouped)
 display_group_estimated_times(df_grouped, group_ids)
-#jump_start(group_ids, cur_dir)
+jump_start(group_ids, cur_dir)

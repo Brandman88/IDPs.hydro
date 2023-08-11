@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from simtk.openmm import app
 import simtk.openmm as omm
 from simtk import unit
@@ -138,7 +136,7 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
 KELVIN_TO_KT = unit.AVOGADRO_CONSTANT_NA * unit.BOLTZMANN_CONSTANT_kB / unit.kilocalorie_per_mole
 
 
-filename = 'data.csv'  # Replace with your CSV file name
+filename = 'data_multi.csv'  # Replace with your CSV file name
 
 arguments = parse_arguments_from_csv(start,filename)
 

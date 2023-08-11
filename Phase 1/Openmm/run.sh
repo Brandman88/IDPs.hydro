@@ -17,4 +17,4 @@
 #module load anaconda/anaconda3
 #source activate hoomd
 # ==========================================================
-python3 run_code.py
+python3.8 run_code.py

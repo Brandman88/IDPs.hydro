@@ -1,10 +1,10 @@
 #!/bin/sh
-#SBATCH --nodes=3
-#SBATCH --time=40:00:00
+#SBATCH --nodes=1
+#SBATCH --time=00:10:00
 #SBATCH --job-name=hoomd
-#SBATCH --cores-per-socket=14 # Very high number to force unused node instead of shared 
-#SBATCH --ntasks=12 # number of tasks to do, node says how to split amongst nodes 
-#SBATCH --ntasks-per-node=4     # number of tasks per node
+#SBATCH --cores-per-socket=1 # Very high number to force unused node instead of shared 
+#SBATCH --ntasks=2 # number of tasks to do, node says how to split amongst nodes 
+#SBATCH --ntasks-per-node=2     # number of tasks per node
 #SBATCH --ntasks-per-core=2
 #SBATCH --cpu-freq=HighM1
 #SBATCH --mem-per-cpu=12GB 
@@ -16,5 +16,6 @@
 # ==========================================================
 #module load anaconda/anaconda3
 #source activate hoomd
+#conda activate uber_env
 # ==========================================================
-python3 run_code.py
+python3.8 Parallel.py

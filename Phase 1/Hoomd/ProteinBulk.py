@@ -117,7 +117,11 @@ def read_multi_run(parameters='multi_run.dat'):
     # Return the number of runs, start value, marker, and the cleaned list of lines
     return num_run,start,marker,clean_list
 
-box_size=9*find_Protein_length()
+def box_size_equation():
+    est_box_size = int(((4.08744 * 10**-3) * find_Protein_length()**2.35278) + 207)
+    return est_box_size
+
+box_size=box_size_equation()
 hoomd.context.initialize("");
 
 # ========================= System Parameters =======================================
@@ -209,7 +213,7 @@ for i in range(ParticleN-2):
 # ========================= System Initialization =======================================
 system=gsd.hoomd.Snapshot()
 
-aakeys = np.loadtxt('stats_module.dat', dtype=np.str, usecols=(0), unpack=True)
+aakeys = np.loadtxt('stats_module.dat', dtype=str, usecols=(0), unpack=True)
 aakeys_mass = np.loadtxt('stats_module.dat', usecols=(1), unpack=True)
 aakeys_chgs = np.loadtxt('stats_module.dat', usecols=(2), unpack=True)
 aakeys_sigmas = np.loadtxt('stats_module.dat', usecols=(3), unpack=True)

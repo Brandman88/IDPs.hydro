@@ -157,11 +157,11 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
 
 # Define the commands
 commands = [
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate hoomd_w_panda && python3 organize.py',
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate hoomd_w_panda && python3 ProteinBulk.py',
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate my_env && module load anaconda/anaconda3 && python3 long_config_analysis.py',
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate my_env && module load anaconda/anaconda3 && python3 cm_fix.py',
-    'module load anaconda/anaconda3 && source activate hoomd && conda activate hoomd_w_panda && python3 organize.py'
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 organize.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 SOP_IDP2.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 long_config_analysis.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 cm_fix.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 organize.py'
 ]
 
 num_run, start, marker, list_files = read_multi_run()

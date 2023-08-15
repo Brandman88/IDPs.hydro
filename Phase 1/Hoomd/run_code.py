@@ -1,101 +1,81 @@
 import subprocess
 import time
 import shutil
-import os
-import sys
-import pandas as pd
-
+import os 
 
 parameters='multi_run.dat'
+#num_run is first number, says how many runs are we doing?
+#start is the second number, says where we are in that list
+#marker is are we at the start or end of a task. default is S for starting
+
+dest_file='1LC.txt'
+dest_file_debug="debug_file.txt"
+
 cur_dir=os.getcwd()
+dir_to_run=f"{cur_dir}/to_run"
+dir_comp=f"{cur_dir}/completed_run"
 
 def read_multi_run(parameters='multi_run.dat'):
-    # Open the specified parameter file.
     with open(parameters,'r') as para:
         lines = []
-        # Read the file line by line and store each line in a list.
         for line in para:
             lines.append(line)
     para.close()
+    
     num_run_raw=lines[0]
     start_raw=lines[1]
     marker_raw=lines[2]
     
-    # Extract the number of proteins to run.
     if '#Number of proteins you care to run' in num_run_raw:
         num_run=int(num_run_raw.replace('#Number of proteins you care to run','').strip())
     else:
         num_run=int(num_run_raw)
-
-    # Extract the start value.
     if '#Start value (if you are just starting the process should be on 1 by default)' in start_raw:
         start=int(start_raw.replace('#Start value (if you are just starting the process should be on 1 by default)','').strip())
     else:
         start=int(start_raw)
-
-    # Extract the marker.
     if '#Put S or E based on starting or end process (don\'t really need to touch), if its I then set the other 2 numbers and run the file again.' in marker_raw:
         marker=marker_raw.replace('#Put S or E based on starting or end process (don\'t really need to touch), if its I then set the other 2 numbers and run the file again.','')
     else:
         marker=marker_raw
     marker=marker.strip()
 
-    # Remove the lines that have been processed.
     lines.remove(num_run_raw)
     lines.remove(start_raw)
     lines.remove(marker_raw)
   
     clean_list=[]
   
-    # Go through the remaining lines and clean them up.
     for line in lines:
         line=line.strip()
-        # If the line is not empty,
         if line.strip():
-            # If the line contains a newline character, remove it.
-                if '\n' in line:
-                    # Remove newline character and any leading or trailing white spaces
-                    line=line.replace('\n','').strip()
-                    clean_list.append(line)
-                else:
-                    # Add the line into the clean list after removing leading or trailing white spaces
-                    clean_list.append(line.strip())
+            if '\n' in line:
+                line=line.replace('\n','').strip()
+                clean_list.append(line)
+            else:
+                clean_list.append(line.strip())
                 
-    # Return the number of runs, start value, marker, and the cleaned list of lines
     return num_run,start,marker,clean_list
 
-def edit_multi_run(parameters,num_run,start,marker,list_files):
-    # Open the parameter file for writing
-    with open(parameters,'w') as para:
-        # Check marker status and edit start and marker accordingly
-        if marker=='S':
-            marker='E'
-        elif marker=='E':
-            start+=1
-            marker='S'
-            
-        # Write the number of runs, start value, and marker to the file
-        para.write(f'{num_run} #Number of proteins you care to run')
-        para.write(f'\n{start} #Start value (if you are just starting the process should be on 1 by default)')
-        para.write(f'\n{marker} #Put S or E based on starting or end process (don\'t really need to touch), if its I then set the other 2 numbers and run the file again.')
+def check_dest_file_debug(dest_file_debug="debug_file.txt"):
+    if not os.path.exists(dest_file_debug):
+        f = open(dest_file_debug, 'x')
+        f.close()
 
-        # Write all the remaining files from the list_files to the parameter file
-        for filing in list_files:
-            para.write(f'\n{filing}')
-    # Close the file
-    para.close()
-    
-def read_entire_csv_return_dict_and_num_rows(dest_required_file_csv = "data.csv"):
-    # Read the CSV data
-    df = pd.read_csv(dest_required_file_csv)
+check_dest_file_debug()
 
-    # Get the number of rows
-    num_rows = df.shape[0]
+def find_stokes_num_from_hoomd_file():
+    """
+    Scans through the current directory for files starting with 'hoomd', strips the string 'hoomd-' and '.out' from the file name and converts the resultant string to an integer.
+    Returns this integer representing the hoomd number.
+    """
+    for file in os.listdir(os.getcwd()):  # Iterate over all files in the current directory
+        if file.startswith("hoomd"):  # If file name starts with 'hoomd'
+            file = file.replace('hoomd-', '').replace('.out', '').strip()  # Remove 'hoomd-' from the file name  # Remove '.out' from the file name
+            hoomd_number = int(file)  # Convert file name to integer
+    return hoomd_number
 
-    # Convert the DataFrame to a list of dictionaries
-    data = df.to_dict('records')
-
-    return data, num_rows
+stokes_num=find_stokes_num_from_hoomd_file()
 
 def execute_shell_command(command, output_file="debug_file.txt"):
     try:
@@ -109,6 +89,27 @@ def execute_shell_command(command, output_file="debug_file.txt"):
                 # Write the output to the file
                 file.write(line)
                 file.flush()  # Ensure immediate write to the file
+
+        # Wait for the process to finish
+        process.wait()
+
+        # Check the return code
+        if process.returncode != 0:
+            print(f"Command '{command}' failed with return code {process.returncode}")
+            # You can raise an exception here or handle the error condition as needed
+
+    except Exception as e:
+        print(f"An error occurred while executing the command: {str(e)}")
+        # Handle the exception as needed
+
+def execute_shell_command_no_communication(command):
+    try:
+        # Execute the shell command as a subprocess
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+        # Read the output line by line, but don't do anything with it
+        for line in process.stdout:
+            pass  # No operation
 
         # Wait for the process to finish
         process.wait()
@@ -153,27 +154,29 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
         print(f"An error occurred while executing the command: {str(e)}")
         # Handle the exception as needed
 
-def check_dest_file_debug(dest_file_debug="debug_file.txt"):
-    if not os.path.exists(dest_file_debug):
-        f = open(dest_file_debug, 'x')
-        f.close()
-                  
-#Start of what actually is being ran
-execute_shell_command_start("conda deactivate")
-execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && conda activate hoomd_w_panda && python3 organize.py")
-print("Initializing process started\n")
 
+# Define the commands
+commands = [
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 organize.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 ProteinBulk.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 long_config_analysis.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 cm_fix.py',
+    'module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 organize.py'
+]
 
-# In the furture maybe add the ability to just certain rows ect to run (that would go here)
+num_run, start, marker, list_files = read_multi_run()
 
-
-num_run,start,marker,clean_list=read_multi_run()
-data,num_rows=read_entire_csv_return_dict_and_num_rows()
-num_run=num_rows
-edit_multi_run(parameters,num_run,start,marker,clean_list)
-
-
-execute_shell_command_start("conda deactivate")
-execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && conda activate hoomd_w_panda && python3 organize.py")
-execute_shell_command_start("conda deactivate")
-execute_shell_command("module purge && module load anaconda/anaconda3 && sbatch run.sh")
+while start <= num_run:
+    num_run, start, marker, list_files = read_multi_run()
+    start_time = time.time()
+    if num_run==1:
+        for command in commands:
+            execute_shell_command(command, output_file="debug_file.txt")
+        break
+    else:    
+        for command in commands:
+            execute_shell_command(command, output_file="debug_file.txt")
+        
+        if start==num_run:#goes into this after finishing commands so this tells us if we finished and leaves beofre attempting to read again
+            break
+execute_shell_command_no_communication(f'scancel {stokes_num}')

@@ -614,7 +614,36 @@ def plot_something_many_labels_relative():
     safe_filename = f'{dependent}_vs_{independent}_labeled_by_{label}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
-    
+
+def find_common_csv_name_merge_all():
+    """
+    Find all CSV files with a specific name and merge them into a single DataFrame.
+    The merged data is then exported to a CSV file named 'merged_data.csv'.
+
+    Returns:
+        pandas.DataFrame: The merged data.
+    """
+
+    csv_filename = 'merged_config_stat_results.csv'
+    merged_data = pd.DataFrame()
+
+    for root, dirs, files in os.walk(os.getcwd()):
+        for file in files:
+            # Check if the file is a CSV file and has the desired name
+            if file.endswith('.csv') and file == csv_filename:
+                # Get the full path of the CSV file
+                file_path = os.path.join(root, file)
+
+                # Read the CSV file into a DataFrame
+                data = pd.read_csv(file_path)
+
+                # Merge the data with the existing merged data
+                merged_data = pd.concat([merged_data, data], ignore_index=True)
+
+    # Export the merged data to a CSV file
+    merged_data.to_csv(f'{os.getcwd()}/merged_data.csv', index=False)
+
+
 def sort_csv():
     
     csv_name=list_csv_files_in_directory_choose('Location of csv file')

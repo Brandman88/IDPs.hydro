@@ -213,7 +213,7 @@ for i in range(ParticleN-2):
 # ========================= System Initialization =======================================
 system=gsd.hoomd.Snapshot()
 
-aakeys = np.loadtxt('stats_module.dat', dtype=np.str, usecols=(0), unpack=True)
+aakeys = np.loadtxt('stats_module.dat', dtype=str, usecols=(0), unpack=True)
 aakeys_mass = np.loadtxt('stats_module.dat', usecols=(1), unpack=True)
 aakeys_chgs = np.loadtxt('stats_module.dat', usecols=(2), unpack=True)
 aakeys_sigmas = np.loadtxt('stats_module.dat', usecols=(3), unpack=True)

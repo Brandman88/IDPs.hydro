@@ -160,7 +160,7 @@ def check_dest_file_debug(dest_file_debug="debug_file.txt"):
                   
 #Start of what actually is being ran
 execute_shell_command_start("conda deactivate")
-execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && python3 organize.py")
+execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && python3 organize.py")
 print("Initializing process started\n")
 
 
@@ -174,6 +174,6 @@ edit_multi_run(parameters,num_run,start,marker,clean_list)
 
 
 execute_shell_command_start("conda deactivate")
-execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && module load anaconda/anaconda3 && python3 organize.py")
+execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && source /home/sbrandon/my-envs/uber_env/bin/activate && module load anaconda/anaconda3 && python3 organize.py")
 execute_shell_command_start("conda deactivate")
 execute_shell_command("module purge && module load anaconda/anaconda3 && sbatch run.sh")

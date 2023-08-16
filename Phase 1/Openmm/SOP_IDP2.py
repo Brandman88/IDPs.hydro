@@ -150,7 +150,7 @@ parser.add_argument('-K', '--monovalent_concentration', type=float, default=floa
 parser.add_argument('-c', '--cutoff', type=float, default=float(arguments['Cutoff']),
                     help='Cutoff distance for electrostatics (A) [40.0]')
 parser.add_argument('-T', '--temperature', type=float, default=float(arguments['Absolute Temperature']),
-                    help='Temperature (oC) [20.0]')
+                    help='Temperature (K) [293.15]')
 parser.add_argument('-t', '--traj', type=str, default=arguments['Trajectory'],
                     help='trajectory output')
 parser.add_argument('-o', '--output', type=str, default=arguments['Output'],

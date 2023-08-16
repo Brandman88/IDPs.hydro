@@ -1,6 +1,6 @@
 import MDAnalysis as mda
 
-u = mda.Universe('Running_Config.gsd')
+u = mda.Universe('Running_Config.dcd')
 Poly3d = u.select_atoms('all')
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)

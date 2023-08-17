@@ -286,7 +286,7 @@ def clean_up():
     """
     num_run, start, marker, list_files = read_multi_run()  # Reading details from multiple run
     if start > num_run:  # Only proceed if the starting number is greater than the total number of runs
-        read_dat_files_data_merger_create_csv()
+        #read_dat_files_data_merger_create_csv()
         # Special case for emergency plot goes here if post processing phase is incomplete
         current_list_of_files= [f for f in os.listdir(cur_dir) if os.path.isfile(os.path.join(cur_dir, f))]
         list_files=current_list_of_files[:]
@@ -301,7 +301,7 @@ def clean_up():
                 shutil.move(location_file, end_dir_file)  # Move the debug file from current location to the end directory
         for file in temp_list:  # Iterate over the remaining files in the temporary list
             os.remove(file)  # Remove these remaining files from the directory
-        packing_up()
+        #packing_up()
         shutil.rmtree(dir_comp)  
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):

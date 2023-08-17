@@ -1,7 +1,7 @@
 import numpy as np
 import MDAnalysis as mda
 
-u = mda.Universe('Running_Config.dcd')
+u = mda.Universe('Running_Config.pdb')
 u.add_TopologyAttr('masses') # Mass attribute is not present: Add the masses attribute to the universe
 Tag3d = u.select_atoms('all')
 mass=3.0

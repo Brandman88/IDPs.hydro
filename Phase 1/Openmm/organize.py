@@ -299,10 +299,10 @@ def clean_up():
                 location_file = f"{cur_dir}/{file}"  # Define the current location of the debug file
                 end_dir_file = f"{dir_comp}/{file}"  # Define the final location for the debug file
                 shutil.move(location_file, end_dir_file)  # Move the debug file from current location to the end directory
-        for file in temp_list:  # Iterate over the remaining files in the temporary list
-            os.remove(file)  # Remove these remaining files from the directory
+        #for file in temp_list:  # Iterate over the remaining files in the temporary list
+            #os.remove(file)  # Remove these remaining files from the directory
         #packing_up()
-        shutil.rmtree(dir_comp)  
+        #shutil.rmtree(dir_comp)  
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''

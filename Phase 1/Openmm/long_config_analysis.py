@@ -27,9 +27,9 @@ def radgyr2(atomgroup, masses, total_mass=None):
     return rog_sq
    
 # ========================= Read Trajectory =======================================
-#u = mda.Universe('Running_Config_polymer.dcd', format="LAMMPS")
-u = mda.Universe('Running_Config.dcd')
-#u.add_TopologyAttr('masses') # If the mass attribute is not present: Add the masses attribute to the universe
+u = mda.Universe('Running_Config.dcd', format="LAMMPS")
+#u = mda.Universe('Running_Config.dcd')
+u.add_TopologyAttr('masses') # If the mass attribute is not present: Add the masses attribute to the universe
 Poly3d = u.select_atoms('all')
 #mass=1.0
 #Poly3d.masses = mass # Assign mass to be unity

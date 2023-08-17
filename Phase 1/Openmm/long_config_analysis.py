@@ -31,8 +31,8 @@ u = mda.Universe('Running_Config.dcd', format="LAMMPS")
 #u = mda.Universe('Running_Config.dcd')
 u.add_TopologyAttr('masses') # If the mass attribute is not present: Add the masses attribute to the universe
 Poly3d = u.select_atoms('all')
-#mass=1.0
-#Poly3d.masses = mass # Assign mass to be unity
+mass=1.0
+Poly3d.masses = mass # Assign mass to be unity
 
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)

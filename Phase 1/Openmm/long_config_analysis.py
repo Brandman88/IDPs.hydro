@@ -75,9 +75,9 @@ Rgyr2=[]
 sum_Rgsq = 0.0
 for ts in u.trajectory:
     Rgyr.append(Poly3d.radius_of_gyration())
-    #Rgyr_Sq = radgyr2(Poly3d, Poly3d.masses, total_mass)[0]
-    #Rgyr2.append(Rgyr_Sq)
-    #sum_Rgsq = sum_Rgsq + Rgyr_Sq
+    Rgyr_Sq = radgyr2(Poly3d, Poly3d.masses, total_mass)[0]
+    Rgyr2.append(Rgyr_Sq)
+    sum_Rgsq = sum_Rgsq + Rgyr_Sq
 
 avg_Rg=np.mean(Rgyr)
 std_Rg=np.std(Rgyr)
@@ -127,7 +127,22 @@ print (ParticleN, round(avg_bondl,3), round(avg_lp,3), round(avg_Rendsq,3), roun
 Stat_Output.close()
 
 Running_Stats_output = open ("running_stat.dat", "w")
-print ("# cos(angle), lp, Rg, Rgsq, R_endsq, TransFluctsq", file=Running_Stats_output)
+print ("Rgsq, Rg^2, R_endsq, TransFluctsq", file=Running_Stats_output)
+
+
+"""
+
+Running_Stats_output = open ("running_stat.dat", "w")
+print ("# cos(angle) Rg, Rgsq, R_endsq, TransFluctsq", file=Running_Stats_output)
+Running_Stats_output.close()
+
+"""
+
+for i in range (ntime):
+    print (round(np.sqrt(Rgyr2[i]),3), round(Rgyr2[i],3), round(RendSq[i],3), round(TransSq[i],3), file=Running_Stats_output)
+Running_Stats_output.close()
+
+
 
 '''
 for i in range (ntime):

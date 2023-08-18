@@ -28,8 +28,18 @@ def radgyr2(atomgroup, masses, total_mass=None):
 u = mda.Universe('Running_Config.pdb')
 Poly3d = u.select_atoms('all')
 
+
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)
+
+start_frame = int(ntime*.7)
+
+filtered_trajectory = u.trajectory[start_frame::1]
+frames = [ts.frame for ts in filtered_trajectory]
+print(frames, u.trajectory.frame)
+
+
+
 
 total_mass = np.sum(Poly3d.masses)
 print (u.atoms)
@@ -73,11 +83,14 @@ print ("<cos(theta)>: %.5f," %(Avg_cosangle), "<lp>: %.5f," %(Avg_lp), "<lp> = -
 Rgyr = []
 Rgyr2=[]
 sum_Rgsq = 0.0
-for ts in u.trajectory:
+for ts in filtered_trajectory:
     Rgyr.append(Poly3d.radius_of_gyration())
     Rgyr_Sq = radgyr2(Poly3d, Poly3d.masses, total_mass)[0]
     Rgyr2.append(Rgyr_Sq)
     sum_Rgsq = sum_Rgsq + Rgyr_Sq
+
+
+
 
 avg_Rg=np.mean(Rgyr)
 std_Rg=np.std(Rgyr)
@@ -94,7 +107,7 @@ RendSq=[]
 TransSq=[]
 sum_R2_dist = 0
 sum_fluctsq = 0
-for ts in u.trajectory:  
+for ts in filtered_trajectory:  
     rend = First_Particle.position - End_Particle.position # end-to-end vector from atom positions
     rendsq = rend*rend
     RendSq.append(np.linalg.norm(rendsq))
@@ -138,7 +151,7 @@ Running_Stats_output.close()
 
 """
 
-for i in range (ntime):
+for i in range (ntime-start_frame):
     print (round(np.sqrt(Rgyr2[i]),3), round(Rgyr2[i],3), round(RendSq[i],3), round(TransSq[i],3), file=Running_Stats_output)
 Running_Stats_output.close()
 

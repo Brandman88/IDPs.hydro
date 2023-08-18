@@ -4,11 +4,18 @@ u = mda.Universe('Running_Config.pdb')
 Poly3d = u.select_atoms('all')
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)
+start_frame = int(ntime*.7)
+
+filtered_trajectory = u.trajectory[start_frame::1]
+frames = [ts.frame for ts in filtered_trajectory]
+print(frames, u.trajectory.frame)
+
+
 print ("Number of Particles:", ParticleN, "Trajectory Length:", ntime)
 
 count = 0
 fi = open ("Running_Config.xyz", "w")
-for ts in u.trajectory:
+for ts in filtered_trajectory:
     center_of_mass = Poly3d.center_of_mass()
     print(ParticleN, file = fi)
     print ("frame", count, file = fi)

@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --nodes=1
-#SBATCH --time=00:10:00
+#SBATCH --time=01:09:00
 #SBATCH --job-name=hoomd
 #SBATCH --cores-per-socket=1 # Very high number to force unused node instead of shared 
 #SBATCH --ntasks=2 # number of tasks to do, node says how to split amongst nodes 

@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH --nodes=1
 #SBATCH --time=00:10:00
-#SBATCH --job-name=hoomd
+#SBATCH --job-name=setting_up
 #SBATCH --cores-per-socket=1 # Very high number to force unused node instead of shared 
 #SBATCH --ntasks=2 # number of tasks to do, node says how to split amongst nodes 
 #SBATCH --ntasks-per-node=2     # number of tasks per node
@@ -11,7 +11,7 @@
 #SBATCH --mail-type=begin        # send email when job begins
 #SBATCH --mail-type=end          # send email when job ends
 #SBATCH --mail-user=<br696985@ucf.edu>
-#SBATCH --output=hoomd-%j.out
+#SBATCH --output=job-%j.out
 
 # ==========================================================
 #module load anaconda/anaconda3

@@ -150,7 +150,7 @@ parser.add_argument('-K', '--monovalent_concentration', type=float, default=floa
 parser.add_argument('-c', '--cutoff', type=float, default=float(arguments['Cutoff']),
                     help='Cutoff distance for electrostatics (A) [40.0]')
 parser.add_argument('-T', '--temperature', type=float, default=float(arguments['Absolute Temperature']),
-                    help='Temperature (oC) [20.0]')
+                    help='Temperature (K) [293.15]')
 parser.add_argument('-t', '--traj', type=str, default=arguments['Trajectory'],
                     help='trajectory output')
 parser.add_argument('-o', '--output', type=str, default=arguments['Output'],
@@ -221,7 +221,7 @@ app.PDBFile.writeFile(topology, state.getPositions(), open("input.pdb", "w"), ke
 # simulation.minimizeEnergy(1.*unit.kilocalorie_per_mole, 5000)
 simulation.context.setVelocitiesToTemperature(simu.temp)
 
-simulation.reporters.append(app.DCDReporter(args.traj, args.frequency))
+simulation.reporters.append(app.PDBReporter(args.traj, args.frequency))
 simulation.reporters.append(app.StateDataReporter(args.output, args.frequency, step=True, potentialEnergy=True, temperature=True, remainingTime=True, totalSteps=simu.Nstep, separator='  '))
 #simulation.reporters.append(app.CheckpointReporter(args.res_file, int(args.frequency)*100))
 

@@ -254,7 +254,7 @@ def jump_start(group_ids, cur_dir):
     job_id_gather(group_ids, cur_dir)
     
 def job_id_gather(group_ids, cur_dir):
-    time.sleep(50)
+    time.sleep(150)
     job_list=[]
     # Iterate through each group ID directory
     

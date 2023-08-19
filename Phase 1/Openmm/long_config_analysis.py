@@ -2,8 +2,56 @@ import numpy as np
 from numpy.linalg import norm
 import MDAnalysis as mda
 from MDAnalysis.analysis import polymer
+import pandas as pd
 
+def read_multi_run(parameters='multi_run.dat'):
+    with open(parameters,'r') as para:
+        lines = []
+        for line in para:
+            lines.append(line)
+    para.close()
+    num_run_raw=lines[0]
+    start_raw=lines[1]
+    marker_raw=lines[2]
+    
+    if '#Number of proteins you care to run' in num_run_raw:
+        num_run=int(num_run_raw.replace('#Number of proteins you care to run','').strip())
+    else:
+        num_run=int(num_run_raw)
 
+    if '#Start value (if you are just starting the process should be on 1 by default)' in start_raw:
+        start=int(start_raw.replace('#Start value (if you are just starting the process should be on 1 by default)','').strip())
+    else:
+        start=int(start_raw)
+
+    if '#Put S or E based on starting or end process (don\'t really need to touch), if its I then set the other 2 numbers and run the file again.' in marker_raw:
+        marker=marker_raw.replace('#Put S or E based on starting or end process (don\'t really need to touch), if its I then set the other 2 numbers and run the file again.','')
+    else:
+        marker=marker_raw
+    marker=marker.strip()
+    return num_run,start,marker
+
+def get_equilibrium_data_forfeiture(parameters='multi_run.dat', filename='data_multi.csv'):
+    # Call the read_multi_run function to get the start value
+    _, start, _ = read_multi_run(parameters)
+    
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(filename)
+    
+    # Get the row index based on the start value
+    row_index = start - 1
+    
+    # Get the value for the "Equilibrium Data Forfeiture" header
+    equilibrium_data_forfeiture = df.loc[row_index, 'Equilibrium Data Forfeiture']
+    
+    # Check if the value is empty or greater than or equal to 1
+    if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 1:
+        equilibrium_data_forfeiture = 0.7
+    
+    
+    return equilibrium_data_forfeiture
+
+equilibrium_data_forfeiture = get_equilibrium_data_forfeiture()  # The % of the data that will be sacrificed to claim equilibrium 
 
 def radgyr2(atomgroup, masses, total_mass=None):
     # coordinates change for each frame
@@ -25,17 +73,23 @@ def radgyr2(atomgroup, masses, total_mass=None):
     rog_sq = np.sum(masses*sq_rs, axis=1)/total_mass
     # square root and return
     return rog_sq
-   
+
 # ========================= Read Trajectory =======================================
-#u = mda.Universe('Running_Config_polymer.dcd', format="LAMMPS")
-u = mda.Universe('Running_Config.gsd')
-#u.add_TopologyAttr('masses') # If the mass attribute is not present: Add the masses attribute to the universe
+u = mda.Universe('Running_Config.pdb')
 Poly3d = u.select_atoms('all')
-#mass=1.0
-#Poly3d.masses = mass # Assign mass to be unity
+
 
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)
+
+start_frame = int(ntime*(equilibrium_data_forfeiture/100))
+
+filtered_trajectory = u.trajectory[start_frame::1]
+frames = [ts.frame for ts in filtered_trajectory]
+print(frames, u.trajectory.frame)
+
+
+
 
 total_mass = np.sum(Poly3d.masses)
 print (u.atoms)
@@ -46,14 +100,16 @@ PL = polymer.PersistenceLength([Poly3d])
 PL = PL.run()
 avg_lp=PL.lp
 avg_bondl=PL.lb
+print ('Length:', ParticleN)
 print('The persistence length is: %.5f' %(avg_lp))
 print('The bond length is: %.5f' %(avg_bondl))
 
+'''
 # Average angle and Pesistence length
 cosangle_array = []
 lp_array = []
 for ts in u.trajectory:
-    sum_cosangle = 0 
+    sum_cosangle = 0
     for i in range (ParticleN-2):
         vec1 = Poly3d[i+1].position - Poly3d[i].position
         vec2 = Poly3d[i+2].position - Poly3d[i+1].position
@@ -71,22 +127,27 @@ Avg_cosangle = np.mean(cosangle_array)
 Avg_lp = np.mean(lp_array)
 print ("Explicit calculation of angles:")
 print ("<cos(theta)>: %.5f," %(Avg_cosangle), "<lp>: %.5f," %(Avg_lp), "<lp> = -1.0/log(<cos(theta)>): %.5f" %(-1.0/np.log(Avg_cosangle)))
-
+'''
 
 # Radius of Gyration vs Timestep
 Rgyr = []
 Rgyr2=[]
 sum_Rgsq = 0.0
-for ts in u.trajectory:
+for ts in filtered_trajectory:
     Rgyr.append(Poly3d.radius_of_gyration())
     Rgyr_Sq = radgyr2(Poly3d, Poly3d.masses, total_mass)[0]
     Rgyr2.append(Rgyr_Sq)
     sum_Rgsq = sum_Rgsq + Rgyr_Sq
 
+
+
+
 avg_Rg=np.mean(Rgyr)
 std_Rg=np.std(Rgyr)
 avg_Rgsq=sum_Rgsq/ntime
 print ("<Rg>: %.5f," %(avg_Rg), "Std(Rg): %.5f," %(std_Rg), "<Rg2>: %.5f" %(avg_Rgsq), "sqrt(<Rg2>): %.5f" %(np.sqrt(avg_Rgsq)))
+
+
 
 # End to End Distance and Transverse Fluctuation
 First_Particle = u.select_atoms('all')[0]
@@ -96,23 +157,23 @@ RendSq=[]
 TransSq=[]
 sum_R2_dist = 0
 sum_fluctsq = 0
-for ts in u.trajectory:   
+for ts in filtered_trajectory:  
     rend = First_Particle.position - End_Particle.position # end-to-end vector from atom positions
     rendsq = rend*rend
     RendSq.append(np.linalg.norm(rendsq))
     sum_R2_dist = sum_R2_dist + rendsq
-	
+   
     fluctsq = 0.0
     for i in range (ParticleN):
         dr = Poly3d[i].position - Poly3d[1].position
-	
+   
         cross1 = (dr[0]*rend[1] - dr[1]*rend[0])*(dr[0]*rend[1] - dr[1]*rend[0])
         cross2 = (dr[1]*rend[2] - dr[2]*rend[1])*(dr[1]*rend[2] - dr[2]*rend[1])
         cross3 = (dr[2]*rend[0] - dr[0]*rend[2])*(dr[2]*rend[0] - dr[0]*rend[2])
         crossp = cross1 + cross2 + cross3
 
         fluctsq = fluctsq + crossp
-	
+   
     TransSq.append(np.linalg.norm(fluctsq))
     Trans_Fluctsq = fluctsq/(np.sum(rendsq)*(ParticleN-2))
     sum_fluctsq = sum_fluctsq + Trans_Fluctsq
@@ -123,40 +184,31 @@ print ("<R2>:", sum_R2_dist/ntime, "=: %.5f" %(avg_Rendsq), "sqrt(<R2>): %.5f" %
 print ("<Trans_fluct>: %.5f" %(avg_Trans_fluctsq))
 
 
-rounded_avg_Rendsq = round(float(avg_Rendsq), 3)
 Stat_Output = open ("config_stat.dat", "a")
 print ("# ParticleN, bondL, <Lp>, <Rend2>, <Rg>, std_Rg, <Rg2>, sqrt(<Rg2>), TransFluctsq", file=Stat_Output)
-print (f'{ParticleN}, {round(avg_bondl,3)}, {round(avg_lp,3)}, {rounded_avg_Rendsq}, {round(avg_Rg,3)}, {round(std_Rg,3)}, {round(avg_Rgsq,3)}, {round(np.sqrt(avg_Rgsq),3)}, {round(avg_Trans_fluctsq,3)}', file = Stat_Output)
+print (ParticleN, round(avg_bondl,3), round(avg_lp,3), round(avg_Rendsq,3), round(avg_Rg,3), round(std_Rg,3), round(avg_Rgsq,3), round(np.sqrt(avg_Rgsq),3), round(avg_Trans_fluctsq,3), file = Stat_Output)
 Stat_Output.close()
 
 Running_Stats_output = open ("running_stat.dat", "w")
-print ("# cos(angle), lp, Rg, Rgsq, R_endsq, TransFluctsq", file=Running_Stats_output)
-for i in range (ntime):
-    rensq_rounded=round(float(RendSq[i]),3)
-    print (f'{round(cosangle_array[i],3)}, {round(-1.0/np.log(cosangle_array[i]),3)}, {round(np.sqrt(Rgyr2[i]),3)}, {round(Rgyr2[i],3)}, {rensq_rounded}, {round(TransSq[i],3)}', file=Running_Stats_output)
+print ("Rgsq, Rg^2, R_endsq, TransFluctsq", file=Running_Stats_output)
+
+
+"""
+
+Running_Stats_output = open ("running_stat.dat", "w")
+print ("# cos(angle) Rg, Rgsq, R_endsq, TransFluctsq", file=Running_Stats_output)
+Running_Stats_output.close()
+
+"""
+
+for i in range (ntime-start_frame):
+    print (round(np.sqrt(Rgyr2[i]),3), round(Rgyr2[i],3), round(RendSq[i],3), round(TransSq[i],3), file=Running_Stats_output)
 Running_Stats_output.close()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
- 
+'''
+for i in range (ntime):
+    print (round(cosangle_array[i],3), round(-1.0/np.log(cosangle_array[i]),3), round(np.sqrt(Rgyr2[i]),3), round(Rgyr2[i],3), round(RendSq[i],3), round(TransSq[i],3), file=Running_Stats_output)
+Running_Stats_output.close()
+'''

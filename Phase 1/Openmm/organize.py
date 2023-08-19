@@ -271,18 +271,7 @@ def clean_up():
     num_run, start, marker, list_files = read_multi_run()  # Reading details from multiple run
     if start > num_run:  # Only proceed if the starting number is greater than the total number of runs
         read_dat_files_data_merger_create_csv()
-        # Special case for emergency plot goes here if post processing phase is incomplete
-        current_list_of_files= [f for f in os.listdir(cur_dir) if os.path.isfile(os.path.join(cur_dir, f))]
-        list_files=current_list_of_files[:]
-        temp_list = list_files[:]  # Creating a temporary copy of the list of files
-        for file in list_files:  # Iterate over each file in the list of files
-            if file.endswith("py") or file.endswith("sh") or file.startswith("hoomd")or file==dest_required_file :  # If the file ends with 'py', equals to 'dest_required_file' or starts with 'hoomd'
-                temp_list.remove(file)  # Remove such file from the temporary list
-            elif file == dest_file_debug or file.endswith("csv") or file.endswith("svg"):  # If the file equals to 'dest_file_debug'
-                temp_list.remove(file)  # Remove such file from the temporary list
-                location_file = f"{cur_dir}/{file}"  # Define the current location of the debug file
-                end_dir_file = f"{dir_comp}/{file}"  # Define the final location for the debug file
-                shutil.move(location_file, end_dir_file)  # Move the debug file from current location to the end directory
+        remove_hoomd_file()
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''
@@ -456,7 +445,6 @@ else:
         # If the marker is 'S', then proceed with the generation of the three different codes and edit the parameters file.
         elif marker=='S':
             write_csv_sequence_to_1LC()  # Copy letter text
-
             list_files=add_hoomd_file_multi(list_files)
             edit_multi_run(parameters,num_run,start,marker,list_files)  # Edit the parameters file
         # If the marker is 'E', then move files to completed directory and edit the parameters file.

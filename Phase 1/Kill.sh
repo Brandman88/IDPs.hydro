@@ -18,5 +18,4 @@
 #source activate hoomd
 #conda activate uber_env
 # ==========================================================
-
-echo 1
+python3 Parallel.py

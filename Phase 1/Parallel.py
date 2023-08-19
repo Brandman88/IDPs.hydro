@@ -6,18 +6,28 @@ import subprocess
 import time
 import sys
 from collections import defaultdict
-
+import datetime
+import glob
 
 max_safe_group=6
 over_guess_percent=20 
 
 cur_dir=os.getcwd()
-dir_cal=f"{cur_dir}/Calculations"
+check_dir_cal=f"{cur_dir}/Calculations"
+check_dir_archive=f"{cur_dir}/Data_Archive"
+
+
 
 file_path_data = "data.csv"
 file_path_m_data = "data_multi.csv"
 
 
+
+if os.path.exists(check_dir_cal) and len(os.listdir(check_dir_cal))!=0:
+    in_process = True
+else:
+    in_process = False
+    
 if not os.path.exists(file_path_data):#preference is given to data.csv if both exist
     if not os.path.exists(file_path_m_data):
         print(f"{file_path_data} and {file_path_m_data} don't exist!\n You need at least one of thses files.")
@@ -26,7 +36,11 @@ if not os.path.exists(file_path_data):#preference is given to data.csv if both e
         file_path=file_path_m_data
 else:
     file_path=file_path_data
+
+if not os.path.exists(check_dir_archive):
+    os.makedirs(check_dir_archive)
     
+
 def execute_shell_command(command, output_file="debug_file.txt"):
     try:
         # Execute the shell command as a subprocess
@@ -269,6 +283,17 @@ def find_stokes_num_from_hoomd_file():
             hoomd_number = int(file)  # Convert file name to integer
     return hoomd_number
     
+def find_stokes_num_from_job_file():
+    """
+    Scans through the current directory for files starting with 'job', strips the string 'job-' and '.out' from the file name and converts the resultant string to an integer.
+    Returns this integer representing the job number.
+    """
+    for file in os.listdir(os.getcwd()):  # Iterate over all files in the current directory
+        if file.startswith("job"):  # If file name starts with 'job'
+            file = file.replace('job-', '').replace('.out', '').strip()  # Remove 'job-' from the file name  # Remove '.out' from the file name
+            job_number = int(file)  # Convert file name to integer
+    return job_number    
+    
 def file_from_list(temp_list,name_of_file):
     with open(name_of_file, 'w') as file:
         # Iterate through the list and write each element to the file
@@ -292,17 +317,149 @@ def display_group_estimated_times(df_with_groups, unique_group_ids):
         
         print(f"Group ID: {group_id} - Estimated Time: {hours} hours, {minutes} minutes")
 
+def data_gather(file_path, check_dir_cal):
+    """
+    Gathers data from 'completed_run' directories in the specified directory,
+    looks for files matching the file_path variable, and creates a large dataset
+    by combining all the data with similar headers. Then, it creates a new CSV file
+    in the original directory with the name of the file_path variable.
+    """
+    # List all the directories in check_dir_cal
+    sub_dirs = [os.path.join(check_dir_cal, d) for d in os.listdir(check_dir_cal) if os.path.isdir(os.path.join(check_dir_cal, d))]
+    
+    # Initialize an empty list to hold all the dataframes
+    dataframes = []
+
+    # Loop through each subdirectory
+    for sub_dir in sub_dirs:
+        # Go to the 'completed_run' directory in each subdirectory
+        completed_run_dir = os.path.join(sub_dir, 'completed_run')
+        
+        # Check if the 'completed_run' directory exists
+        if os.path.exists(completed_run_dir):
+            # Look for files matching the file_path variable
+            file_pattern = os.path.join(completed_run_dir, file_path)
+            files = glob.glob(file_pattern)
+            
+            # Process only the first file if any files were found
+            if files:
+                df = pd.read_csv(files[0])
+                dataframes.append(df)
+                
+    # Concatenate all the dataframes together
+    merged_data = pd.concat(dataframes, ignore_index=True)
+    
+    # Write it out to a new CSV file in the original directory
+    output_file = os.path.join(cur_dir, file_path)
+    merged_data.to_csv(output_file, index=False)
+    print(f"Data gathered and saved as '{output_file}'")
+    
+    # Copy the CSV file to the check_dir_cal directory with the same name
+    shutil.copy(output_file, check_dir_cal)
+    print(f"Copied '{output_file}' to '{check_dir_cal}'")
+    
+    # Copy the CSV file to the check_dir_cal directory with the same name
+    output_file = os.path.join(cur_dir, 'Job_list.txt')
+    shutil.copy(output_file, check_dir_cal)
+    print(f"Copied '{output_file}' to '{check_dir_cal}'")
+
+def packing_up():
+    """
+    Packages up the 'completed_run' directory into a zip file. The zip file is named with the Job number (hoomd number) and the date-time when the packing is done. The hoomd file is removed before packing.
+    """
+    cur_dt = datetime.datetime.now()  # Get the current date and time
+    formatted_dt = cur_dt.strftime("%Y-%m-%d_%H-%M")  # Formatting date and time to the accepted naming convention
+    stokes_num = find_stokes_num_from_job_file()  # Get Stokes Job Number 
+    zip_file_name = f'completed_run_Job({stokes_num})_TimeFinished({formatted_dt})'  # Define the zip file name
+    zip_file_path = os.path.join(cur_dir, zip_file_name)  # Define the zip file path
+    shutil.make_archive(zip_file_path, 'zip', check_dir_cal)  # Create the zip archive
+    print(f"Zipped directory '{check_dir_cal}' and saved as '{zip_file_path}'")  # Inform the user of the completed task
+
+    # Delete the check_dir_cal directory
+    shutil.rmtree(check_dir_cal)
+    print(f"Deleted directory '{check_dir_cal}'")
+
+    # Delete any file in cur_dir that ends with .out
+    out_files = glob.glob(os.path.join(cur_dir, '*.out'))
+    for file in out_files:
+        os.remove(file)
+        print(f"Deleted file '{file}'")
+    return stokes_num
+
+def create_directory(directory, name):
+    """
+    Creates a new directory with the specified name in the specified directory if it doesn't already exist.
+
+    :param directory: The directory where the new directory should be created
+    :param name: The name of the new directory
+    """
+    # Join the directory and name to form the name of the new directory
+    new_dir = os.path.join(directory, name)
+    
+    # Check if the new directory already exists
+    if not os.path.exists(new_dir):
+        # If it doesn't exist, create it
+        os.makedirs(new_dir)
+        print(f"Created directory '{new_dir}'")
+    else:
+        print(f"Directory '{new_dir}' already exists")
+    return new_dir
+
+def migrate(stokes_num,quick_data_dir):
+    # Create a temporary path for the renamed file in the same directory as old_path
+    cur_dt = datetime.datetime.now()  # Get the current date and time
+    formatted_dt = cur_dt.strftime("%Y-%m-%d_%H-%M")  # Formatting date and time to the accepted naming convention
+    new_name=f'{stokes_num}_TimeFinished({formatted_dt}).csv'
+    new_file_path = os.path.join(quick_data_dir, new_name)
+    old_file_path = os.path.join(cur_dir, file_path)
+    os.rename(old_file_path, new_file_path)
+    
+def decide(file_path,in_process):
+    if in_process:
+        data_gather(file_path,check_dir_cal)
+        stokes_num=packing_up()
+        zip_files = glob.glob(os.path.join(cur_dir, '*.zip'))
+        if not zip_files:
+            print("No zip file found!")
+            exit()
+        zip_file_path = zip_files[0]
+    
+    
+        if file_path==file_path_data:
+            # If running Hoomd
+            print("Running Hoomd")
+            hoomd_jobs_dir=create_directory(check_dir_archive,'Hoomd_Jobs')
+            shutil.move(zip_file_path, hoomd_jobs_dir)
+            print(f"Moved '{zip_file_path}' to '{hoomd_jobs_dir}'")
+            quick_data_dir=create_directory(hoomd_jobs_dir,'Quick_Data')
+            migrate(stokes_num,quick_data_dir)
+            
+        elif file_path==file_path_m_data:
+            # If running OpenMM
+            print("Running OpenMM")
+            openmm_jobs_dir=create_directory(check_dir_archive,'OpenMM_Jobs')
+            shutil.move(zip_file_path, openmm_jobs_dir)
+            print(f"Moved '{zip_file_path}' to '{openmm_jobs_dir}'")
+            quick_data_dir=create_directory(openmm_jobs_dir,'Quick_Data')
+            migrate(stokes_num,quick_data_dir)
+            
+        else:
+            print("No File Found!")
+            exit()
+    else:
+        df_sorted, total_time, average_time, max_time, num_rows = process_csv(file_path)
+        print(f"Total Estimated Time: {total_time}")
+        print(f"Average Estimated Time: {average_time}")
+        print(f"Number of Rows: {num_rows}")
+        print(df_sorted.head())
+        df_grouped=create_optimized_groups(df_sorted, max_time, max_safe_group)
+        group_ids=get_unique_group_ids(df_grouped)
+        copy_files_and_create_csv_by_group(df_grouped,cur_dir, group_ids,file_path)
+        update_run_sh(group_ids, cur_dir, over_guess_percent, df_grouped)
+        display_group_estimated_times(df_grouped, group_ids)
+        jump_start(group_ids, cur_dir)
 
 
-df_sorted, total_time, average_time, max_time, num_rows = process_csv(file_path)
-print(f"Total Estimated Time: {total_time}")
-print(f"Average Estimated Time: {average_time}")
-print(f"Number of Rows: {num_rows}")
-print(df_sorted.head())
 
-df_grouped=create_optimized_groups(df_sorted, max_time, max_safe_group)
-group_ids=get_unique_group_ids(df_grouped)
-copy_files_and_create_csv_by_group(df_grouped,cur_dir, group_ids,file_path)
-update_run_sh(group_ids, cur_dir, over_guess_percent, df_grouped)
-display_group_estimated_times(df_grouped, group_ids)
-jump_start(group_ids, cur_dir)
+
+decide(file_path,in_process)

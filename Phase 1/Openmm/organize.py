@@ -263,22 +263,6 @@ def add_hoomd_file_multi(list):
             list.append(file)  # Remove the file        
     return list
 
-def packing_up():
-    """
-    Packages up the 'completed_run' directory into a zip file. The zip file is named with the Job number (hoomd number) and the date-time when the packing is done. The hoomd file is removed before packing.
-    """
-    cur_dir = os.getcwd()  # Get the current directory path
-    cur_dt = datetime.datetime.now()  # Get the current date and time
-    formatted_dt = cur_dt.strftime("%Y-%m-%d_%H-%M")  # Formatting date and time to the accepted naming convention
-    stokes_num = find_stokes_num_from_hoomd_file()  # Get Stokes Job Number 
-    remove_hoomd_file()  # Remove hoomd file
-    parent_directory = os.path.dirname(cur_dir)  # Get the path of the parent directory
-    completed_run_directory = os.path.join(cur_dir, 'completed_run')  # Path of the 'completed_run' directory
-    zip_file_name = f'completed_run_Job({stokes_num})_TimeFinished({formatted_dt})'  # Define the zip file name
-    zip_file_path = os.path.join(parent_directory, zip_file_name)  # Define the zip file path
-    shutil.make_archive(zip_file_path, 'zip', completed_run_directory)  # Create the zip archive
-    print(f"Zipped directory '{completed_run_directory}' and saved as '{zip_file_path}'")  # Inform the user of the completed task
-
 # Special use-case for plotting current inside
 def clean_up():
     """
@@ -299,10 +283,6 @@ def clean_up():
                 location_file = f"{cur_dir}/{file}"  # Define the current location of the debug file
                 end_dir_file = f"{dir_comp}/{file}"  # Define the final location for the debug file
                 shutil.move(location_file, end_dir_file)  # Move the debug file from current location to the end directory
-        for file in temp_list:  # Iterate over the remaining files in the temporary list
-            os.remove(file)  # Remove these remaining files from the directory
-        packing_up()
-        shutil.rmtree(dir_comp)  
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''

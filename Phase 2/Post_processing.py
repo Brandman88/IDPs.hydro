@@ -43,6 +43,7 @@ def get_definitions_useful():
     del definitions['show_dictionary_keys_from_csv_choose']
     del definitions['show_dictionary_keys_from_csv']
     del definitions['list_csv_files_in_directory_choose']
+    del definitions['list_out_files_in_directory_choose']
     del definitions['list_py_files_in_directory_choose']
     del definitions['list_dat_files_in_directory_choose']
     del definitions['list_directories_in_directory_choose']
@@ -276,8 +277,23 @@ def list_py_files_in_directory_choose(name):
         print("No Python files found in the current directory.")
         return None
 
-    chosen_file_num=pick_from_list_static(py_files,'Python files')
+    chosen_file_num=pick_from_list_static(py_files,f'{name}')
     chosen_file=py_files[chosen_file_num-1]
+    return chosen_file
+
+def list_out_files_in_directory_choose(name):
+    # Get the current directory
+    current_dir = os.getcwd()
+
+    # Get all files in the directory ending with ".py"
+    out_files = [file for file in os.listdir(current_dir) if file.endswith(".out")]
+
+    if not out_files:
+        print("No Python files found in the current directory.")
+        return None
+
+    chosen_file_num=pick_from_list_static(out_files,f'{name}')
+    chosen_file=out_files[chosen_file_num-1]
     return chosen_file
 
 def list_dat_files_in_directory_choose():
@@ -643,7 +659,6 @@ def find_common_csv_name_merge_all():
     # Export the merged data to a CSV file
     merged_data.to_csv(f'{os.getcwd()}/merged_data.csv', index=False)
 
-
 def sort_csv():
     
     csv_name=list_csv_files_in_directory_choose('Location of csv file')
@@ -994,6 +1009,36 @@ def ask_user_actions():
             # Execute the chosen definition with the inputs
             exec(f"{chosen_name}(*inputs)")
 
+def convert_out2csv():
+    """
+    Convert a .out file into a .csv file using pandas.
+
+    Args:
+    - input_path (str): Path to the .out file to be converted.
+    - output_path (str): Path where the resulting .csv should be saved.
+
+    Returns:
+    None
+    """
+    # Reading the .out file
+    filestuff=list_out_files_in_directory_choose("Out file you want to convert to csv")
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the data
+    headers = lines[0].split()  # Assumes the first line has column names
+    data = [line.split() for line in lines[1:]]
+
+    # Convert data into a pandas DataFrame
+    df = pd.DataFrame(data, columns=headers)
+
+   # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the output CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the DataFrame as a .csv
+    df.to_csv(output_path, index=False)
+    print(f"File has been converted and saved as: {output_path}")
 
 #plot_something_location_relative_to_one_variable_trend('<Rg>','K value')
 #sort_csv('config_stat_results.csv','k Value')

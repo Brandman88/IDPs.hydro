@@ -966,6 +966,127 @@ def read_dat_files_data_merger_create_csv():
     # Write it out
     merged_data.to_csv('merged_config_stat_results.csv', index=False)
 
+def convert_out2csv():
+    """
+    Convert a .out file into a .csv file using pandas.
+    Returns:
+    None
+    """
+    # Reading the .out file
+    filestuff = list_out_files_in_directory_choose("Out file you want to convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    df = pd.DataFrame(data, columns=headers)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the output CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the DataFrame as a .csv
+    df.to_csv(output_path, index=False)
+    print(f"File has been converted and saved as: {output_path}")
+
+def merge_out_with_csv():
+    # Reading the .out file
+    filestuff = list_out_files_in_directory_choose("Out file you want to convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    out_df = pd.DataFrame(data, columns=headers)
+
+    # Prompt user to choose a CSV file
+    csv_file = list_csv_files_in_directory_choose("Choose a CSV file to merge with the .out DataFrame")
+    csv_data = pd.read_csv(csv_file)
+
+    # Perform the merge based on common keys
+    common_keys = set(out_df.columns).intersection(set(csv_data.columns))
+    merged_data = pd.merge(out_df, csv_data, on=list(common_keys))
+
+    if merged_data.empty:
+        print("No matching rows found based on the common keys. Unable to merge.")
+        return
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the merged DataFrame as a .csv
+    merged_data.to_csv(output_path, index=False)
+    print(f"DataFrames merged successfully. Merged data exported to '{output_path}'.")
+
+def merge_dat_with_out():
+    """
+    Merge data from a .dat file with the bottom of a .out file and export to a new .csv file.
+    """
+    # Read .out file
+    out_file_path = list_out_files_in_directory_choose("Out file you want to convert to csv")
+
+    with open(out_file_path, "r") as file:
+        out_lines = file.readlines()
+
+    # Parsing the headers
+    out_headers = out_lines[0].strip().replace('"', '').replace('  ', ',').split(',')
+
+    # Parsing the data rows
+    out_data = []
+    for line in out_lines[1:]:
+        row = line.strip().split()
+        out_data.append(row)
+
+    # Convert data into a pandas DataFrame
+    out_df = pd.DataFrame(out_data, columns=out_headers)
+
+    # Read .dat file
+    dat_file_path = list_dat_files_in_directory_choose()
+    dat_df = pd.read_csv(dat_file_path, delim_whitespace=True)  # Assumes space-separated
+
+    # Calculate the difference in lengths between out_df and dat_df
+    length_difference = len(out_df) - len(dat_df)
+
+    # Merge data row by row
+    merged_data = []
+    for i in range(len(dat_df)):
+        merged_row = dat_df.iloc[i].values.tolist() + out_df.iloc[i + length_difference].values.tolist()
+        merged_data.append(merged_row)
+
+    # Create a new DataFrame from the merged data
+    merged_columns = dat_df.columns.tolist() + out_df.columns.tolist()
+    merged_df = pd.DataFrame(merged_data, columns=merged_columns)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Merged data exported to '{output_path}'.")
+
+
+
+
 def ask_user_actions():
     # Get all definitions in the module
     definitions = choose_category_return_dict()
@@ -1008,37 +1129,6 @@ def ask_user_actions():
 
             # Execute the chosen definition with the inputs
             exec(f"{chosen_name}(*inputs)")
-
-def convert_out2csv():
-    """
-    Convert a .out file into a .csv file using pandas.
-
-    Args:
-    - input_path (str): Path to the .out file to be converted.
-    - output_path (str): Path where the resulting .csv should be saved.
-
-    Returns:
-    None
-    """
-    # Reading the .out file
-    filestuff=list_out_files_in_directory_choose("Out file you want to convert to csv")
-    with open(filestuff, "r") as file:
-        lines = file.readlines()
-
-    # Parsing the data
-    headers = lines[0].split()  # Assumes the first line has column names
-    data = [line.split() for line in lines[1:]]
-
-    # Convert data into a pandas DataFrame
-    df = pd.DataFrame(data, columns=headers)
-
-   # Letting the user specify the name of the output .csv file
-    output_name = input("Please enter a name for the output CSV file (without the .csv extension): ")
-    output_path = f"{output_name}.csv"
-    
-    # Export the DataFrame as a .csv
-    df.to_csv(output_path, index=False)
-    print(f"File has been converted and saved as: {output_path}")
 
 #plot_something_location_relative_to_one_variable_trend('<Rg>','K value')
 #sort_csv('config_stat_results.csv','k Value')

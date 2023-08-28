@@ -101,15 +101,22 @@ def est_time_equation(number_of_letters):
     estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
     return estimated_time
 
+def est_time_equation_open(number_of_letters):
+    estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
+    estimated_time= estimated_time*4
+    return estimated_time
+
 def process_csv(file_path):
     # Read the CSV file
     df = pd.read_csv(file_path)
 
     # Create a temporary column with the number of letters in "Sequence"
     df['letters_count'] = df['Sequence'].apply(len)
-
-    # Apply your equation to the temporary column to calculate the estimated time
-    df['estimated_time'] = df['letters_count'].apply(est_time_equation)
+    if file_path==file_path_data:
+        df['estimated_time'] = df['letters_count'].apply(est_time_equation)
+    elif file_path==file_path_m_data:
+        df['estimated_time'] = df['letters_count'].apply(est_time_equation_open)
+    
 
     # Calculate the total estimated time
     total_estimated_time = df['estimated_time'].sum()

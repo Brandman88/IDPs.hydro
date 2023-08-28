@@ -186,7 +186,7 @@ print ("<Trans_fluct>: %.5f" %(avg_Trans_fluctsq))
 
 Stat_Output = open ("config_stat.dat", "a")
 print ("# ParticleN, bondL, <Lp>, <Rend2>, <Rg>, std_Rg, <Rg2>, sqrt(<Rg2>), TransFluctsq", file=Stat_Output)
-print (ParticleN, round(avg_bondl,3), round(avg_lp,3), round(avg_Rendsq,3), round(avg_Rg,3), round(std_Rg,3), round(avg_Rgsq,3), round(np.sqrt(avg_Rgsq),3), round(avg_Trans_fluctsq,3), file = Stat_Output)
+print (f'{ParticleN}, {round(avg_bondl,3)}, {round(avg_lp,3)}, {round(avg_Rendsq,3)}, {round(avg_Rg,3)}, {round(std_Rg,3)}, {round(avg_Rgsq,3)}, {round(np.sqrt(avg_Rgsq),3)}, {round(avg_Trans_fluctsq,3)}', file = Stat_Output)
 Stat_Output.close()
 
 Running_Stats_output = open ("running_stat.dat", "w")
@@ -202,10 +202,8 @@ Running_Stats_output.close()
 """
 
 for i in range (ntime-start_frame):
-    print (round(np.sqrt(Rgyr2[i]),3), round(Rgyr2[i],3), round(RendSq[i],3), round(TransSq[i],3), file=Running_Stats_output)
+    print(f'{round(np.sqrt(Rgyr2[i]),3)},{round(Rgyr2[i],3)},{round(RendSq[i],3)},{round(TransSq[i],3)}',file=Running_Stats_output)
 Running_Stats_output.close()
-
-
 
 '''
 for i in range (ntime):

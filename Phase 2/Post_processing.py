@@ -1038,53 +1038,61 @@ def merge_out_with_csv():
     print(f"DataFrames merged successfully. Merged data exported to '{output_path}'.")
 
 def merge_dat_with_out():
-    """
-    Merge data from a .dat file with the bottom of a .out file and export to a new .csv file.
-    """
     # Read .out file
     out_file_path = list_out_files_in_directory_choose("Out file you want to convert to csv")
 
     with open(out_file_path, "r") as file:
         out_lines = file.readlines()
 
-    # Parsing the headers
-    out_headers = out_lines[0].strip().replace('"', '').replace('  ', ',').split(',')
-
-    # Parsing the data rows
-    out_data = []
-    for line in out_lines[1:]:
-        row = line.strip().split()
-        out_data.append(row)
-
-    # Convert data into a pandas DataFrame
-    out_df = pd.DataFrame(out_data, columns=out_headers)
+    # Parsing the headers from .out file
+    out_headers = out_lines[0].strip().split()
 
     # Read .dat file
     dat_file_path = list_dat_files_in_directory_choose()
-    dat_df = pd.read_csv(dat_file_path, delim_whitespace=True)  # Assumes space-separated
+    dat_df = pd.read_csv(dat_file_path)
 
-    # Calculate the difference in lengths between out_df and dat_df
-    length_difference = len(out_df) - len(dat_df)
+    # Calculate the offset for merging
+    offset = len(out_lines) - len(dat_df)
 
-    # Merge data row by row
-    merged_data = []
-    for i in range(len(dat_df)):
-        merged_row = dat_df.iloc[i].values.tolist() + out_df.iloc[i + length_difference].values.tolist()
-        merged_data.append(merged_row)
+    # Create a DataFrame for combined data
+    combined_data = []
+    for i, out_line in enumerate(out_lines[offset:], offset):
+        out_values = out_line.strip().split()
+        dat_values = dat_df.iloc[i - offset].values.tolist()
+        combined_values = dat_values + out_values
+        combined_data.append(combined_values)
 
-    # Create a new DataFrame from the merged data
-    merged_columns = dat_df.columns.tolist() + out_df.columns.tolist()
-    merged_df = pd.DataFrame(merged_data, columns=merged_columns)
+    # Create merged DataFrame with appropriate columns
+    merged_df = pd.DataFrame(combined_data, columns=dat_df.columns.tolist() + out_headers)
 
     # Letting the user specify the name of the output .csv file
     output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
     output_path = f"{output_name}.csv"
-    
+
     # Export the merged DataFrame as a .csv
     merged_df.to_csv(output_path, index=False)
     print(f"Merged data exported to '{output_path}'.")
 
+def format_data_with_commas():
+    dat_file_path = list_dat_files_in_directory_choose()
+    input_file, output_file=dat_file_path,dat_file_path
+    
+    with open(input_file, 'r') as f:
+        data = f.read()
 
+    lines = data.strip().split('\n')
+    header = lines[0].split(', ')
+    values = [line.split() for line in lines[1:]]
+
+    formatted_lines = [', '.join(header)]
+    for value_set in values:
+        formatted_values = [f'{float(value):,.3f}' for value in value_set]
+        formatted_lines.append(', '.join(formatted_values))
+
+    formatted_data = '\n'.join(formatted_lines)
+
+    with open(output_file, 'w') as f:
+        f.write(formatted_data)
 
 
 def ask_user_actions():

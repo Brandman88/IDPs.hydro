@@ -45,8 +45,8 @@ def get_equilibrium_data_forfeiture(parameters='multi_run.dat', filename='data_m
     equilibrium_data_forfeiture = df.loc[row_index, 'Equilibrium Data Forfeiture']
     
     # Check if the value is empty or greater than or equal to 1
-    if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 1:
-        equilibrium_data_forfeiture = 0.7
+    if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 100:
+        equilibrium_data_forfeiture = 70
     
     
     return equilibrium_data_forfeiture

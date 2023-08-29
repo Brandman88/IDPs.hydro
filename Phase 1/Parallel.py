@@ -9,8 +9,8 @@ from collections import defaultdict
 import datetime
 import glob
 
-max_safe_group=6
-over_guess_percent=20 
+max_safe_group=10
+over_guess_percent=30 
 
 cur_dir=os.getcwd()
 check_dir_cal=f"{cur_dir}/Calculations"

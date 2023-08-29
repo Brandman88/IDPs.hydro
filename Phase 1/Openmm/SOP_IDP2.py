@@ -222,7 +222,7 @@ app.PDBFile.writeFile(topology, state.getPositions(), open("input.pdb", "w"), ke
 simulation.context.setVelocitiesToTemperature(simu.temp)
 
 simulation.reporters.append(app.PDBReporter(args.traj, args.frequency))
-simulation.reporters.append(app.StateDataReporter(args.output, args.frequency, step=True, potentialEnergy=True, temperature=True, remainingTime=True, totalSteps=simu.Nstep, separator='  '))
+simulation.reporters.append(app.StateDataReporter(args.output, args.frequency, step=True, potentialEnergy=True, temperature=True, remainingTime=True, totalSteps=simu.Nstep, separator=','))
 #simulation.reporters.append(app.CheckpointReporter(args.res_file, int(args.frequency)*100))
 
 print('Running simulation ...')

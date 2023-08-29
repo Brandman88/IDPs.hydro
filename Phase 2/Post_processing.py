@@ -1094,6 +1094,46 @@ def format_data_with_commas():
     with open(output_file, 'w') as f:
         f.write(formatted_data)
 
+def merge_out_dat_and_convert_to_csv():
+    """
+    Merge an .out file and a .dat file and save the result as a .csv file using pandas.
+    Returns:
+    None
+    """
+    # Read and convert the .out file to a DataFrame
+    filestuff = list_out_files_in_directory_choose("Out file you want to merge and convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    out_df = pd.DataFrame(data, columns=headers)
+
+    # Read the .dat file into a DataFrame
+    dat_df = pd.read_csv("your_dat_file.csv")  # Replace with the correct path
+
+    # Calculate the starting index for merging
+    start_index = len(out_df) - len(dat_df)
+
+    # Slice the "out" dataframe and merge it with the "dat" dataframe
+    merged_df = pd.concat([out_df.iloc[start_index:], dat_df], axis=1)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged output CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Files have been merged and saved as: {output_path}")
 
 def ask_user_actions():
     # Get all definitions in the module

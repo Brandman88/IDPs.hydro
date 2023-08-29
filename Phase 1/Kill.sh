@@ -20,3 +20,4 @@
 #conda activate uber_env
 # ==========================================================
 python3 Parallel.py
+rm Job_list.txt

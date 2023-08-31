@@ -1135,6 +1135,41 @@ def merge_out_dat_and_convert_to_csv():
     merged_df.to_csv(output_path, index=False)
     print(f"Files have been merged and saved as: {output_path}")
 
+def fix_running_out_file():
+    out_file="Running_Config.out"
+    with open(out_file,'r') as file:
+        lines = []
+        for line in file:
+            lines.append(line.replace('"',''))
+    file.close()
+    with open(out_file,'w') as file:
+        for filing in lines:
+            file.write(f'{filing}')
+    file.close()
+    
+def merge_for_histogram():
+    fix_running_out_file()
+    out_file="Running_Config.out"
+    dat_file="running_stat.dat"
+    dat_df = pd.read_csv(dat_file)
+    out_df = pd.read_csv(out_file)
+    # Calculate the offset for merging
+    offset = len(out_df) - len(dat_df)
+    interest_out_df=out_df.tail(len(dat_df)).reset_index(drop=True)
+    print(interest_out_df)
+    
+    # Create merged DataFrame with appropriate columns
+    merged_df = dat_df.join(interest_out_df)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Merged data exported to '{output_path}'.")
+
+
 def ask_user_actions():
     # Get all definitions in the module
     definitions = choose_category_return_dict()

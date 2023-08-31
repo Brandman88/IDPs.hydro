@@ -190,7 +190,7 @@ print (f'{ParticleN}, {round(avg_bondl,3)}, {round(avg_lp,3)}, {round(avg_Rendsq
 Stat_Output.close()
 
 Running_Stats_output = open ("running_stat.dat", "w")
-print ("Rgsq, Rg^2, R_endsq, TransFluctsq", file=Running_Stats_output)
+print ("Rgsq,Rg^2,R_endsq,TransFluctsq", file=Running_Stats_output)
 
 
 """

@@ -14,7 +14,9 @@ from random import *
 from scipy.stats import pearsonr
 import inspect
 from importlib.util import spec_from_file_location, module_from_spec
-
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, HoverTool
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def get_definitions():

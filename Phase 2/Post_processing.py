@@ -1171,23 +1171,23 @@ def merge_for_histogram():
 
 def plot_histogram():
     loc1 = list_csv_files_in_directory_choose('Location of csv file')
-    dependent = show_dictionary_keys_from_csv_choose(loc1, 'Dependent')
+    #dependent = show_dictionary_keys_from_csv_choose(loc1, 'Dependent')
     independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
     df = pd.read_csv(loc1)
 
     # Evaluate values and convert to floats
-    df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+    #df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
     df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
     # Create a larger figure to plot all items
     fig, ax = plt.subplots(figsize=(16, 12))
     scale_axes(fig)
-
-    ax.hist(df[independent], bins=20, edgecolor='black')
+    bin_amount= int(input("How many bar sections do you care for?"))
+    ax.hist(df[independent], bins=bin_amount, edgecolor='black')
     ax.set_xlabel(independent)  # Update the label accordingly
-    ax.set_ylabel(dependent)  # Update the y-axis label
+    ax.set_ylabel('Frequency')  # Update the y-axis label
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-    safe_filename = f'hist_{dependent}_{independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    safe_filename = f'hist_{independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
 

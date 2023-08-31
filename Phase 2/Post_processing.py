@@ -1193,7 +1193,47 @@ def plot_histogram():
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
 
+def plot_3D_related2_time():
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+    data_df = pd.read_csv(loc1)
+    
+    dependent = show_dictionary_keys_from_csv_choose(loc1, 'dependent')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'independent')
+    
+    dependent_columns = [col for col in data_df.columns if col.lower() == dependent.lower()]
+    independent_columns = [col for col in data_df.columns if col.lower() == independent.lower()]
 
+    if not dependent_columns:
+        print(f"Column '{dependent}' does not exist in the CSV file.")
+        return
+    if not independent_columns:
+        print(f"Column '{independent}' does not exist in the CSV file.")
+        return
+
+    dependent_column = dependent_columns[0]
+    independent_column = independent_columns[0]
+    
+    fig = plt.figure(figsize=(30, 30))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    y = data_df[independent_column]
+    z = data_df[dependent_column]
+    x = data_df.index
+    
+    ax.scatter(x, y, z, c=z, cmap='viridis')  # Color points based on Z values
+
+    ax.set_ylabel(independent_column)
+    ax.set_zlabel(dependent_column)
+    ax.set_xlabel('Row Index')
+
+    plt.title(f'3D Scatter Plot: {dependent_column} vs {independent_column}')
+
+    # Save the plot as an image
+    safe_filename = f'3D_scatter_plot_{dependent_column}_vs_{independent_column}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+
+    # Close the plot
+    plt.close()
 
 
 

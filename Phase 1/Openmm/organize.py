@@ -420,7 +420,32 @@ def read_dat_files_data_merger_create_csv(csv_file="data_multi.csv", dir_comp=di
 
     # Write it out
     merged_data.to_csv('merged_config_stat_results.csv', index=False)
-         
+
+def fix_running_out_file():
+    out_file="Running_Config.out"
+    with open(out_file,'r') as file:
+        lines = []
+        for line in file:
+            lines.append(line.replace('"',''))
+    file.close()
+    with open(out_file,'w') as file:
+        for filing in lines:
+            file.write(f'{filing}')
+    file.close()
+    
+def merge_for_histogram():
+    fix_running_out_file()
+    out_file="Running_Config.out"
+    dat_file="running_stat.dat"
+    dat_df = pd.read_csv(dat_file)
+    out_df = pd.read_csv(out_file)
+    interest_out_df=out_df.tail(len(dat_df)).reset_index(drop=True)
+    merged_df = dat_df.join(interest_out_df)
+    output_path = f"Histogram.csv"
+    merged_df.to_csv(output_path, index=False)
+    print(f"Merged data exported to '{output_path}'.")
+
+
 # Check if the parameters file exists
 if not os.path.exists(parameters):
     # If the parameters file does not exist, initialize it with default values, and also initialize the destination and debug files.
@@ -449,6 +474,7 @@ else:
             edit_multi_run(parameters,num_run,start,marker,list_files)  # Edit the parameters file
         # If the marker is 'E', then move files to completed directory and edit the parameters file.
         elif marker=='E':
+            merge_for_histogram()
             change_e_to_s(parameters,num_run,start,marker,list_files)
             num_run,start,marker,list_files=read_multi_run()
             if start > num_run:

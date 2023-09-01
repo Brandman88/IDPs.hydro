@@ -9,8 +9,8 @@ from collections import defaultdict
 import datetime
 import glob
 
-max_safe_group=6
-over_guess_percent=20 
+max_safe_group=10
+over_guess_percent=30 
 
 cur_dir=os.getcwd()
 check_dir_cal=f"{cur_dir}/Calculations"
@@ -101,15 +101,22 @@ def est_time_equation(number_of_letters):
     estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
     return estimated_time
 
+def est_time_equation_open(number_of_letters):
+    estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
+    estimated_time= estimated_time*4
+    return estimated_time
+
 def process_csv(file_path):
     # Read the CSV file
     df = pd.read_csv(file_path)
 
     # Create a temporary column with the number of letters in "Sequence"
     df['letters_count'] = df['Sequence'].apply(len)
-
-    # Apply your equation to the temporary column to calculate the estimated time
-    df['estimated_time'] = df['letters_count'].apply(est_time_equation)
+    if file_path==file_path_data:
+        df['estimated_time'] = df['letters_count'].apply(est_time_equation)
+    elif file_path==file_path_m_data:
+        df['estimated_time'] = df['letters_count'].apply(est_time_equation_open)
+    
 
     # Calculate the total estimated time
     total_estimated_time = df['estimated_time'].sum()
@@ -319,10 +326,9 @@ def display_group_estimated_times(df_with_groups, unique_group_ids):
 
 def data_gather(file_path, check_dir_cal):
     """
-    Gathers data from 'completed_run' directories in the specified directory,
-    looks for files matching the file_path variable, and creates a large dataset
-    by combining all the data with similar headers. Then, it creates a new CSV file
-    in the original directory with the name of the file_path variable.
+    Gathers data from the specified directory, looks for files matching the file_path variable,
+    and creates a large dataset by combining all the data with similar headers.
+    Then, it creates a new CSV file in the original directory with the name of the file_path variable.
     """
     # List all the directories in check_dir_cal
     sub_dirs = [os.path.join(check_dir_cal, d) for d in os.listdir(check_dir_cal) if os.path.isdir(os.path.join(check_dir_cal, d))]
@@ -332,19 +338,14 @@ def data_gather(file_path, check_dir_cal):
 
     # Loop through each subdirectory
     for sub_dir in sub_dirs:
-        # Go to the 'completed_run' directory in each subdirectory
-        completed_run_dir = os.path.join(sub_dir, 'completed_run')
-        
-        # Check if the 'completed_run' directory exists
-        if os.path.exists(completed_run_dir):
-            # Look for files matching the file_path variable
-            file_pattern = os.path.join(completed_run_dir, file_path)
-            files = glob.glob(file_pattern)
+        # Look for files named 'merged_config_stat_results.csv' in each subdirectory
+        file_pattern = os.path.join(sub_dir, 'merged_config_stat_results.csv')
+        files = glob.glob(file_pattern)
             
-            # Process only the first file if any files were found
-            if files:
-                df = pd.read_csv(files[0])
-                dataframes.append(df)
+        # Process only the first file if any files were found
+        if files:
+            df = pd.read_csv(files[0])
+            dataframes.append(df)
                 
     # Concatenate all the dataframes together
     merged_data = pd.concat(dataframes, ignore_index=True)
@@ -358,10 +359,10 @@ def data_gather(file_path, check_dir_cal):
     shutil.copy(output_file, check_dir_cal)
     print(f"Copied '{output_file}' to '{check_dir_cal}'")
     
-    # Copy the CSV file to the check_dir_cal directory with the same name
-    output_file = os.path.join(cur_dir, 'Job_list.txt')
-    shutil.copy(output_file, check_dir_cal)
-    print(f"Copied '{output_file}' to '{check_dir_cal}'")
+    # Copy the 'Job_list.txt' file to the check_dir_cal directory
+    job_list_file = os.path.join(cur_dir, 'Job_list.txt')
+    shutil.copy(job_list_file, check_dir_cal)
+    print(f"Copied '{job_list_file}' to '{check_dir_cal}'")
 
 def packing_up():
     """

@@ -14,7 +14,9 @@ from random import *
 from scipy.stats import pearsonr
 import inspect
 from importlib.util import spec_from_file_location, module_from_spec
-
+from bokeh.plotting import figure, show
+from bokeh.models import ColumnDataSource, HoverTool
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def get_definitions():
@@ -43,6 +45,7 @@ def get_definitions_useful():
     del definitions['show_dictionary_keys_from_csv_choose']
     del definitions['show_dictionary_keys_from_csv']
     del definitions['list_csv_files_in_directory_choose']
+    del definitions['list_out_files_in_directory_choose']
     del definitions['list_py_files_in_directory_choose']
     del definitions['list_dat_files_in_directory_choose']
     del definitions['list_directories_in_directory_choose']
@@ -276,8 +279,23 @@ def list_py_files_in_directory_choose(name):
         print("No Python files found in the current directory.")
         return None
 
-    chosen_file_num=pick_from_list_static(py_files,'Python files')
+    chosen_file_num=pick_from_list_static(py_files,f'{name}')
     chosen_file=py_files[chosen_file_num-1]
+    return chosen_file
+
+def list_out_files_in_directory_choose(name):
+    # Get the current directory
+    current_dir = os.getcwd()
+
+    # Get all files in the directory ending with ".py"
+    out_files = [file for file in os.listdir(current_dir) if file.endswith(".out")]
+
+    if not out_files:
+        print("No Python files found in the current directory.")
+        return None
+
+    chosen_file_num=pick_from_list_static(out_files,f'{name}')
+    chosen_file=out_files[chosen_file_num-1]
     return chosen_file
 
 def list_dat_files_in_directory_choose():
@@ -370,7 +388,7 @@ def plot_something_2locations_relative_to_one_variable_basic():
     plot_title = f'{dependent_column} vs {independent_column}'
     plt.title(plot_title)
     
-    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "")
+    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
 
     # Save the plot
     plt.savefig(safe_filename)
@@ -410,7 +428,7 @@ def plot_something_2locations_relative_to_one_variable_trend():
     plt.title(f'{dependent} vs {independent}')
     plt.legend()
 
-    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "")
+    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
 
     # Save the plot
     plt.savefig(safe_filename)
@@ -442,7 +460,7 @@ def plot_something_location_relative_to_one_variable_basic():
     plot_title = f'{dependent_column} vs {independent_column}'
     plt.title(plot_title)
 
-    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "")
+    safe_filename = f'{dependent} vs {independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
 
     # Save the plot
     plt.savefig(safe_filename)
@@ -489,7 +507,7 @@ def plot_something_location_relative_to_one_variable_trend():
     plt.title(f'{dependent_column} vs {independent_column}')
     plt.legend()
     
-    safe_filename = f'{dependent} vs {independent}_trend.svg'.replace("<", "").replace(">", "").replace(":", "")
+    safe_filename = f'{dependent} vs {independent}_trend.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
 
     # Save the plot
     plt.savefig(safe_filename)
@@ -642,7 +660,6 @@ def find_common_csv_name_merge_all():
 
     # Export the merged data to a CSV file
     merged_data.to_csv(f'{os.getcwd()}/merged_data.csv', index=False)
-
 
 def sort_csv():
     
@@ -951,6 +968,275 @@ def read_dat_files_data_merger_create_csv():
     # Write it out
     merged_data.to_csv('merged_config_stat_results.csv', index=False)
 
+def convert_out2csv():
+    """
+    Convert a .out file into a .csv file using pandas.
+    Returns:
+    None
+    """
+    # Reading the .out file
+    filestuff = list_out_files_in_directory_choose("Out file you want to convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    df = pd.DataFrame(data, columns=headers)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the output CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the DataFrame as a .csv
+    df.to_csv(output_path, index=False)
+    print(f"File has been converted and saved as: {output_path}")
+
+def merge_out_with_csv():
+    # Reading the .out file
+    filestuff = list_out_files_in_directory_choose("Out file you want to convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    out_df = pd.DataFrame(data, columns=headers)
+
+    # Prompt user to choose a CSV file
+    csv_file = list_csv_files_in_directory_choose("Choose a CSV file to merge with the .out DataFrame")
+    csv_data = pd.read_csv(csv_file)
+
+    # Perform the merge based on common keys
+    common_keys = set(out_df.columns).intersection(set(csv_data.columns))
+    merged_data = pd.merge(out_df, csv_data, on=list(common_keys))
+
+    if merged_data.empty:
+        print("No matching rows found based on the common keys. Unable to merge.")
+        return
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+    
+    # Export the merged DataFrame as a .csv
+    merged_data.to_csv(output_path, index=False)
+    print(f"DataFrames merged successfully. Merged data exported to '{output_path}'.")
+
+def merge_dat_with_out():
+    # Read .out file
+    out_file_path = list_out_files_in_directory_choose("Out file you want to convert to csv")
+
+    with open(out_file_path, "r") as file:
+        out_lines = file.readlines()
+
+    # Parsing the headers from .out file
+    out_headers = out_lines[0].strip().split()
+
+    # Read .dat file
+    dat_file_path = list_dat_files_in_directory_choose()
+    dat_df = pd.read_csv(dat_file_path)
+
+    # Calculate the offset for merging
+    offset = len(out_lines) - len(dat_df)
+
+    # Create a DataFrame for combined data
+    combined_data = []
+    for i, out_line in enumerate(out_lines[offset:], offset):
+        out_values = out_line.strip().split()
+        dat_values = dat_df.iloc[i - offset].values.tolist()
+        combined_values = dat_values + out_values
+        combined_data.append(combined_values)
+
+    # Create merged DataFrame with appropriate columns
+    merged_df = pd.DataFrame(combined_data, columns=dat_df.columns.tolist() + out_headers)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Merged data exported to '{output_path}'.")
+
+def format_data_with_commas():
+    dat_file_path = list_dat_files_in_directory_choose()
+    input_file, output_file=dat_file_path,dat_file_path
+    
+    with open(input_file, 'r') as f:
+        data = f.read()
+
+    lines = data.strip().split('\n')
+    header = lines[0].split(', ')
+    values = [line.split() for line in lines[1:]]
+
+    formatted_lines = [', '.join(header)]
+    for value_set in values:
+        formatted_values = [f'{float(value):,.3f}' for value in value_set]
+        formatted_lines.append(', '.join(formatted_values))
+
+    formatted_data = '\n'.join(formatted_lines)
+
+    with open(output_file, 'w') as f:
+        f.write(formatted_data)
+
+def merge_out_dat_and_convert_to_csv():
+    """
+    Merge an .out file and a .dat file and save the result as a .csv file using pandas.
+    Returns:
+    None
+    """
+    # Read and convert the .out file to a DataFrame
+    filestuff = list_out_files_in_directory_choose("Out file you want to merge and convert to csv")
+    
+    with open(filestuff, "r") as file:
+        lines = file.readlines()
+
+    # Parsing the headers
+    headers = lines[0].strip().replace('"', '').split('  ')
+    
+    # Parsing the data rows
+    data = []
+    for line in lines[1:]:
+        row = line.strip().replace('"', '').split('  ')
+        data.append(row)
+
+    # Convert data into a pandas DataFrame
+    out_df = pd.DataFrame(data, columns=headers)
+
+    # Read the .dat file into a DataFrame
+    dat_df = pd.read_csv("your_dat_file.csv")  # Replace with the correct path
+
+    # Calculate the starting index for merging
+    start_index = len(out_df) - len(dat_df)
+
+    # Slice the "out" dataframe and merge it with the "dat" dataframe
+    merged_df = pd.concat([out_df.iloc[start_index:], dat_df], axis=1)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged output CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Files have been merged and saved as: {output_path}")
+
+def fix_running_out_file():
+    out_file="Running_Config.out"
+    with open(out_file,'r') as file:
+        lines = []
+        for line in file:
+            lines.append(line.replace('"',''))
+    file.close()
+    with open(out_file,'w') as file:
+        for filing in lines:
+            file.write(f'{filing}')
+    file.close()
+    
+def merge_for_histogram():
+    fix_running_out_file()
+    out_file="Running_Config.out"
+    dat_file="running_stat.dat"
+    dat_df = pd.read_csv(dat_file)
+    out_df = pd.read_csv(out_file)
+    # Calculate the offset for merging
+    offset = len(out_df) - len(dat_df)
+    interest_out_df=out_df.tail(len(dat_df)).reset_index(drop=True)
+    print(interest_out_df)
+    
+    # Create merged DataFrame with appropriate columns
+    merged_df = dat_df.join(interest_out_df)
+
+    # Letting the user specify the name of the output .csv file
+    output_name = input("Please enter a name for the merged CSV file (without the .csv extension): ")
+    output_path = f"{output_name}.csv"
+
+    # Export the merged DataFrame as a .csv
+    merged_df.to_csv(output_path, index=False)
+    print(f"Merged data exported to '{output_path}'.")
+
+def plot_histogram():
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+    #dependent = show_dictionary_keys_from_csv_choose(loc1, 'Dependent')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
+    df = pd.read_csv(loc1)
+
+    # Evaluate values and convert to floats
+    #df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+    df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+    # Create a larger figure to plot all items
+    fig, ax = plt.subplots(figsize=(16, 12))
+    scale_axes(fig)
+    bin_amount= int(input("How many bar sections do you care for?"))
+    ax.hist(df[independent], bins=bin_amount, edgecolor='black')
+    ax.set_xlabel(independent)  # Update the label accordingly
+    ax.set_ylabel('Frequency')  # Update the y-axis label
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    safe_filename = f'hist_{independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
+def plot_3D_related2_time():
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+    data_df = pd.read_csv(loc1)
+    
+    dependent = show_dictionary_keys_from_csv_choose(loc1, 'dependent')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'independent')
+    
+    dependent_columns = [col for col in data_df.columns if col.lower() == dependent.lower()]
+    independent_columns = [col for col in data_df.columns if col.lower() == independent.lower()]
+
+    if not dependent_columns:
+        print(f"Column '{dependent}' does not exist in the CSV file.")
+        return
+    if not independent_columns:
+        print(f"Column '{independent}' does not exist in the CSV file.")
+        return
+
+    dependent_column = dependent_columns[0]
+    independent_column = independent_columns[0]
+    
+    fig = plt.figure(figsize=(30, 30))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    y = data_df[independent_column]
+    z = data_df[dependent_column]
+    x = data_df.index
+    
+    ax.scatter(x, y, z, c=z, cmap='viridis')  # Color points based on Z values
+
+    ax.set_ylabel(independent_column)
+    ax.set_zlabel(dependent_column)
+    ax.set_xlabel('Row Index')
+
+    plt.title(f'3D Scatter Plot: {dependent_column} vs {independent_column}')
+
+    # Save the plot as an image
+    safe_filename = f'3D_scatter_plot_{dependent_column}_vs_{independent_column}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+
+    # Close the plot
+    plt.close()
+
+
+
 def ask_user_actions():
     # Get all definitions in the module
     definitions = choose_category_return_dict()
@@ -993,7 +1279,6 @@ def ask_user_actions():
 
             # Execute the chosen definition with the inputs
             exec(f"{chosen_name}(*inputs)")
-
 
 #plot_something_location_relative_to_one_variable_trend('<Rg>','K value')
 #sort_csv('config_stat_results.csv','k Value')

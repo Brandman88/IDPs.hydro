@@ -13,8 +13,9 @@ max_safe_group=10
 over_guess_percent=30 
 
 cur_dir=os.getcwd()
+parent_dir = os.path.dirname(cur_dir)
 check_dir_cal=f"{cur_dir}/Calculations"
-check_dir_archive=f"{cur_dir}/Data_Archive"
+check_dir_archive=f"{parent_dir}/Data_Archive"
 
 
 

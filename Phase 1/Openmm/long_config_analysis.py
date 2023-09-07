@@ -31,28 +31,6 @@ def read_multi_run(parameters='multi_run.dat'):
     marker=marker.strip()
     return num_run,start,marker
 
-def get_equilibrium_data_forfeiture(parameters='multi_run.dat', filename='data_multi.csv'):
-    # Call the read_multi_run function to get the start value
-    _, start, _ = read_multi_run(parameters)
-    
-    # Read the CSV file into a DataFrame
-    df = pd.read_csv(filename)
-    
-    # Get the row index based on the start value
-    row_index = start - 1
-    
-    # Get the value for the "Equilibrium Data Forfeiture" header
-    equilibrium_data_forfeiture = df.loc[row_index, 'Equilibrium Data Forfeiture']
-    
-    # Check if the value is empty or greater than or equal to 1
-    if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 100:
-        equilibrium_data_forfeiture = 70
-    
-    
-    return equilibrium_data_forfeiture
-
-equilibrium_data_forfeiture = get_equilibrium_data_forfeiture()  # The % of the data that will be sacrificed to claim equilibrium 
-
 def radgyr2(atomgroup, masses, total_mass=None):
     # coordinates change for each frame
     coordinates = atomgroup.positions
@@ -81,15 +59,6 @@ Poly3d = u.select_atoms('all')
 
 ParticleN = len(u.atoms)
 ntime = len(u.trajectory)
-
-start_frame = int(ntime*(equilibrium_data_forfeiture/100))
-
-filtered_trajectory = u.trajectory[start_frame::1]
-frames = [ts.frame for ts in filtered_trajectory]
-print(frames, u.trajectory.frame)
-
-
-
 
 total_mass = np.sum(Poly3d.masses)
 print (u.atoms)
@@ -133,7 +102,7 @@ print ("<cos(theta)>: %.5f," %(Avg_cosangle), "<lp>: %.5f," %(Avg_lp), "<lp> = -
 Rgyr = []
 Rgyr2=[]
 sum_Rgsq = 0.0
-for ts in filtered_trajectory:
+for ts in u.trajectory:
     Rgyr.append(Poly3d.radius_of_gyration())
     Rgyr_Sq = radgyr2(Poly3d, Poly3d.masses, total_mass)[0]
     Rgyr2.append(Rgyr_Sq)
@@ -157,7 +126,7 @@ RendSq=[]
 TransSq=[]
 sum_R2_dist = 0
 sum_fluctsq = 0
-for ts in filtered_trajectory:  
+for ts in u.trajectory:  
     rend = First_Particle.position - End_Particle.position # end-to-end vector from atom positions
     rendsq = rend*rend
     RendSq.append(np.linalg.norm(rendsq))
@@ -185,7 +154,7 @@ print ("<Trans_fluct>: %.5f" %(avg_Trans_fluctsq))
 
 
 Stat_Output = open ("config_stat.dat", "a")
-print ("# ParticleN, bondL, <Lp>, <Rend2>, <Rg>, std_Rg, <Rg2>, sqrt(<Rg2>), TransFluctsq", file=Stat_Output)
+print ("# ParticleN, bondL, <Lp>, <Rend2>, <Rg_avg>, std_Rg, <Rg2>, sqrt(<Rg2>), TransFluctsq", file=Stat_Output)
 print (f'{ParticleN}, {round(avg_bondl,3)}, {round(avg_lp,3)}, {round(avg_Rendsq,3)}, {round(avg_Rg,3)}, {round(std_Rg,3)}, {round(avg_Rgsq,3)}, {round(np.sqrt(avg_Rgsq),3)}, {round(avg_Trans_fluctsq,3)}', file = Stat_Output)
 Stat_Output.close()
 
@@ -201,7 +170,7 @@ Running_Stats_output.close()
 
 """
 
-for i in range (ntime-start_frame):
+for i in range (ntime):
     print(f'{round(np.sqrt(Rgyr2[i]),3)},{round(Rgyr2[i],3)},{round(RendSq[i],3)},{round(TransSq[i],3)}',file=Running_Stats_output)
 Running_Stats_output.close()
 

@@ -426,7 +426,7 @@ def fix_running_out_file():
     with open(out_file,'r') as file:
         lines = []
         for line in file:
-            lines.append(line.replace('"',''))
+            lines.append(line.replace('"','').replace('#',''))
     file.close()
     with open(out_file,'w') as file:
         for filing in lines:

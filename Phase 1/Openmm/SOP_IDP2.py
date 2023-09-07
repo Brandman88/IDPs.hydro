@@ -103,8 +103,26 @@ def read_multi_run(parameters='multi_run.dat'):
     # Return the number of runs, start value, marker, and the cleaned list of lines
     return num_run,start,marker,clean_list
 
+def get_equilibrium_data_forfeiture(parameters='multi_run.dat', filename='data_multi.csv'):
+    # Call the read_multi_run function to get the start value
+    num_run,start,marker,clean_list=read_multi_run()
+    
+    # Read the CSV file into a DataFrame
+    df = pd.read_csv(filename)
+    
+    # Get the row index based on the start value
+    row_index = start - 1
+    
+    # Get the value for the "Equilibrium Data Forfeiture" header
+    equilibrium_data_forfeiture = df.loc[row_index, 'Equilibrium Data Forfeiture']
+    
+    # Check if the value is empty or greater than or equal to 1
+    if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 100:
+        equilibrium_data_forfeiture = 70
+    
+    return equilibrium_data_forfeiture,num_run,start,marker,clean_list
 
-num_run,start,marker,clean_list=read_multi_run()
+equilibrium_data_forfeiture,num_run,start,marker,clean_list = get_equilibrium_data_forfeiture()  # The % of the data that will be sacrificed to claim equilibrium 
 
 
 def parse_arguments_from_csv(start,filename='data_multi.csv'):
@@ -174,6 +192,12 @@ simu.Nstep = args.step
 simu.Kconc = args.monovalent_concentration
 simu.cutoff = args.cutoff
 
+
+
+equilibrium_steps=(simu.Nstep)*(equilibrium_data_forfeiture/100)
+steps_left=(simu.Nstep-equilibrium_steps)
+
+
 T_unitless = simu.temp * KELVIN_TO_KT
 print("T_unitless  ", T_unitless)
 simu.epsilon = 296.0736276 - 619.2813716 * T_unitless + 531.2826741 * T_unitless**2 - 180.0369914 * T_unitless**3;
@@ -220,13 +244,13 @@ app.PDBFile.writeFile(topology, state.getPositions(), open("input.pdb", "w"), ke
 # print('Minimizing ...')
 # simulation.minimizeEnergy(1.*unit.kilocalorie_per_mole, 5000)
 simulation.context.setVelocitiesToTemperature(simu.temp)
-
+simulation.step(equilibrium_steps)
 simulation.reporters.append(app.PDBReporter(args.traj, args.frequency))
-simulation.reporters.append(app.StateDataReporter(args.output, args.frequency, step=True, potentialEnergy=True, temperature=True, remainingTime=True, totalSteps=simu.Nstep, separator=','))
+simulation.reporters.append(app.StateDataReporter(args.output, args.frequency, elapsedTime=True, step=True, speed=True, progress=True, potentialEnergy=True, kineticEnergy=True, totalEnergy=True, temperature=True, remainingTime=True, totalSteps=simu.Nstep, separator=','))
 #simulation.reporters.append(app.CheckpointReporter(args.res_file, int(args.frequency)*100))
 
 print('Running simulation ...')
 t0 = time.time()
-simulation.step(simu.Nstep)
+simulation.step(steps_left)
 prodtime = time.time() - t0
-print("Simulation speed: % .2e steps/day" % (86400*simu.Nstep/(prodtime)))
+print("Simulation speed: % .2e steps/day" % (86400*steps_left/(prodtime)))

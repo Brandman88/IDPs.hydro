@@ -10,7 +10,7 @@ import datetime
 import glob
 
 max_safe_group=10
-over_guess_percent=30 
+over_guess_percent=25 
 
 cur_dir=os.getcwd()
 parent_dir = os.path.dirname(cur_dir)
@@ -102,9 +102,8 @@ def est_time_equation(number_of_letters):
     estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
     return estimated_time
 
-def est_time_equation_open(number_of_letters):
-    estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
-    estimated_time= estimated_time*4
+def est_time_equation_open(number_of_letters, number_of_steps):
+    estimated_time = ((0.0000028534*(number_of_letters**1.4694734396))*number_of_steps)
     return estimated_time
 
 def process_csv(file_path):
@@ -116,7 +115,7 @@ def process_csv(file_path):
     if file_path==file_path_data:
         df['estimated_time'] = df['letters_count'].apply(est_time_equation)
     elif file_path==file_path_m_data:
-        df['estimated_time'] = df['letters_count'].apply(est_time_equation_open)
+        df['estimated_time'] = df.apply(lambda row: est_time_equation_open(row['letters_count'], row['Number of Steps']), axis=1)
     
 
     # Calculate the total estimated time

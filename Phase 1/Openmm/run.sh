@@ -8,9 +8,6 @@
 #SBATCH --ntasks-per-core=2
 #SBATCH --cpu-freq=HighM1
 #SBATCH --mem-per-cpu=12GB 
-#SBATCH --mail-type=begin        # send email when job begins
-#SBATCH --mail-type=end          # send email when job ends
-#SBATCH --mail-user=<br696985@ucf.edu>
 #SBATCH --output=hoomd-%j.out
 
 # ==========================================================

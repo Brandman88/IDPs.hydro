@@ -9,8 +9,6 @@
 #SBATCH --ntasks-per-core=2
 #SBATCH --cpu-freq=HighM1
 #SBATCH --mem-per-cpu=2GB 
-#SBATCH --mail-type=begin        # send email when job begins
-#SBATCH --mail-type=end          # send email when job ends
 #SBATCH --output=job-%j.out
 
 # ==========================================================

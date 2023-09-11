@@ -17,6 +17,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import Rectangle
 
 
 def get_definitions():
@@ -1192,6 +1193,174 @@ def plot_histogram():
     safe_filename = f'hist_{independent}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
+
+def plot_single_box_and_whisker():
+    # Step 1: Get the CSV file location from the user
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+
+    # Step 2: Choose which column from the CSV file to visualize
+    column_to_plot = show_dictionary_keys_from_csv_choose(loc1, 'Column to visualize')
+
+    # Step 3: Load the data into a pandas DataFrame
+    df = pd.read_csv(loc1)
+
+    # Step 4: Clean the data
+    df[column_to_plot] = df[column_to_plot].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+    # Step 5: Plot the box-and-whisker plot using matplotlib
+    fig, ax = plt.subplots(figsize=(12, 8))
+    bp = ax.boxplot(df[column_to_plot], showfliers=True, vert=True)
+    ax.set_ylabel(column_to_plot)
+    ax.set_title(f'Box and Whisker Plot for {column_to_plot}')
+
+    # Extracting statistics from boxplot
+    whiskers = [whisker.get_ydata()[1] for whisker in bp["whiskers"]]
+    caps = [cap.get_ydata()[1] for cap in bp["caps"]]
+    medians = [median.get_ydata()[1] for median in bp["medians"]]
+    quartiles = [box.get_ydata()[i] for box in bp["boxes"] for i in [0, 2]]
+
+    # Preparing statistics for the legend
+    stats = {
+        "Minimum": caps[0],
+        "Lower Quartile": quartiles[0],
+        "Median": medians[0],
+        "Upper Quartile": quartiles[1],
+        "Maximum": caps[1]
+    }
+
+    legend_labels = [f'{stat}: {value:.2f}' for stat, value in stats.items()]
+
+    # Creating a custom legend
+    from matplotlib.lines import Line2D
+    custom_lines = [Line2D([0], [0], color='blue', lw=4) for _ in stats]
+    ax.legend(custom_lines, legend_labels, loc='upper left')
+
+    # Step 6: Allow user to scale the axes
+    scale_axes(fig)
+    
+    safe_filename = f'box_and_whisker_{column_to_plot}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
+def plot_box_and_whisker_grouped():
+    # Step 1: Get the CSV file location from the user
+    loc1 = list_csv_files_in_directory_choose('Location of csv file')
+
+    # Step 2: Choose which column from the CSV file to visualize
+    column_to_plot = show_dictionary_keys_from_csv_choose(loc1, 'Column to visualize')
+
+    # Step 3: Choose the label column
+    label = show_dictionary_keys_from_csv_choose(loc1, 'Label for grouping')
+
+    # Step 4: Load the data into a pandas DataFrame
+    df = pd.read_csv(loc1)
+
+    # Step 5: Clean the data
+    df[column_to_plot] = df[column_to_plot].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+    unique_labels = df[label].unique()
+
+    # Step 6: Group the data by the label and create separate plots for each group
+    fig, axes = plt.subplots(len(unique_labels), 1, figsize=(12, 8 * len(unique_labels)))
+
+    for ax, unique_label in zip(axes, unique_labels):
+        data = df[df[label] == unique_label][column_to_plot].dropna().values
+        bp = ax.boxplot(data, vert=True)
+        ax.set_ylabel(column_to_plot)
+        ax.set_title(f'{unique_label}: Box and Whisker Plot for {column_to_plot}')
+
+        # Extract statistics and add to legend
+        whiskers = [whisker.get_ydata()[1] for whisker in bp["whiskers"]]
+        caps = [cap.get_ydata()[1] for cap in bp["caps"]]
+        medians = [median.get_ydata()[1] for median in bp["medians"]]
+        quartiles = [box.get_ydata()[i] for box in bp["boxes"] for i in [0, 2]]
+        stats = {
+            "Minimum": caps[0],
+            "Lower Quartile": quartiles[0],
+            "Median": medians[0],
+            "Upper Quartile": quartiles[1],
+            "Maximum": caps[1]
+        }
+        legend_labels = [f'{stat}: {value:.2f}' for stat, value in stats.items()]
+        from matplotlib.lines import Line2D
+        custom_lines = [Line2D([0], [0], color='blue', lw=4) for _ in stats]
+        ax.legend(custom_lines, legend_labels, loc='upper right')
+
+        # Allow user to scale the axes
+        scale_axes(fig)
+
+    safe_filename = f'box_and_whisker_{column_to_plot}_grouped_by_{label}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.tight_layout()
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
+def plot_whiskers_with_data():
+    base_dir = list_directories_in_directory_choose()
+
+    # Use glob to get all the Histogram.csv files in subdirectories
+    histogram_files = glob.glob(f'{base_dir}/**/completed_run/**/Histogram.csv', recursive=True)
+
+    # Ask the user for the column to plot using the first Histogram.csv file
+    column_to_plot = show_dictionary_keys_from_csv_choose(histogram_files[0], 'Column to visualize')
+
+    # Ask the user if they want to display fliers or not
+    fliers_option_list = ['Display fliers', 'Do not display fliers']
+    fliers_user_selection = pick_from_list_static(fliers_option_list, 'Fliers Option')
+    show_fliers = True if fliers_user_selection == 1 else False
+    
+    dataframes = []  # to hold data for box plots
+    labels = []  # to hold labels for the box plots
+    all_legend_labels = []  # to hold legend labels for each box
+
+    for histogram_file in histogram_files:
+        protein_name = os.path.basename(os.path.dirname(histogram_file))
+        matched_name = re.match(r"(.*?)(?:_\d+)?$", protein_name).group(1)  # Extract the base protein name
+
+        # Fetch data from the parent directory of the current Histogram.csv (two levels up)
+        parent_dir = os.path.abspath(os.path.join(os.path.dirname(histogram_file), '..', '..'))
+
+        if os.path.exists(os.path.join(parent_dir, "data_multi.csv")):
+            data_file = os.path.join(parent_dir, "data_multi.csv")
+        elif os.path.exists(os.path.join(parent_dir, "data.csv")):
+            data_file = os.path.join(parent_dir, "data.csv")
+
+        df_data = pd.read_csv(data_file)
+        relevant_row = df_data[df_data["Name"] == matched_name].iloc[0]
+
+        df_histogram = pd.read_csv(histogram_file)
+        dataframes.append(df_histogram[column_to_plot].dropna().values)
+        labels.append(protein_name)
+
+        # Fetch additional stats from the local data_multi.csv or data.csv
+        stats = {
+            protein_name: "",  # The protein name on its own line
+            f"    Summary Stats": f"Min: {df_histogram[column_to_plot].min():.2f}, Q1: {df_histogram[column_to_plot].quantile(0.25):.2f}, Med: {df_histogram[column_to_plot].median():.2f}, Q3: {df_histogram[column_to_plot].quantile(0.75):.2f}, Max: {df_histogram[column_to_plot].max():.2f}",
+            f"    Concentration & Temp": f"Monovalent Concentration: {relevant_row['Monovalent Concentration']}, Absolute Temperature: {relevant_row['Absolute Temperature']}",
+            f"    Steps & Forfeiture": f"Number of Steps: {relevant_row['Number of Steps']}, Equilibrium Data Forfeiture: {relevant_row['Equilibrium Data Forfeiture']}%"
+        }
+
+        legend_labels = [f"{stat}: {value}" for stat, value in stats.items()]
+        all_legend_labels.extend(legend_labels)
+
+# Plotting
+    fig, ax = plt.subplots(figsize=(26, 12))
+    bp = ax.boxplot(dataframes, vert=True, labels=labels, showfliers=show_fliers)
+
+    # Create invisible rectangles as handles for the legend
+    invisible_rect = Rectangle((0,0), 0, 0, visible=False)
+    handles = [invisible_rect] * len(all_legend_labels)
+    
+    ax.legend(handles=handles, labels=all_legend_labels, loc='upper left', bbox_to_anchor=(1, 1))
+
+    ax.set_xlabel("Protein Names")
+    ax.set_ylabel(column_to_plot)
+
+    safe_filename = f'grouped_box_and_whisker_{column_to_plot}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.tight_layout()
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.close()
+
+
 
 def plot_3D_related2_time():
     loc1 = list_csv_files_in_directory_choose('Location of csv file')

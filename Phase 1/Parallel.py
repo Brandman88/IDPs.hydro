@@ -253,7 +253,7 @@ def jump_start(group_ids, cur_dir):
         # Execute the specified shell commands
         print(f"Starting group {group_id}...")
         execute_shell_command("conda deactivate")
-        execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && conda activate uber_env && module load anaconda/anaconda3 && python3 Initialize.py")
+        execute_shell_command("module load anaconda/anaconda3 && source activate hoomd && source $HOME/my-envs/uber_env/bin/activate && module load anaconda/anaconda3 && python3 Initialize.py")
         print(f"Group {group_id} initialization complete.")
 
     # Return to the original working directory

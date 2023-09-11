@@ -105,6 +105,7 @@ def est_time_equation(number_of_letters):
 def est_time_equation_open(number_of_letters, number_of_steps):
     estimated_time = ((0.0000000475566667*(number_of_letters**1.4694734396))*number_of_steps)
     return estimated_time
+
 def process_csv(file_path):
     # Read the CSV file
     df = pd.read_csv(file_path)

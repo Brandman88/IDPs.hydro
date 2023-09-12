@@ -1282,7 +1282,6 @@ def plot_box_and_whisker_grouped():
             "Maximum": caps[1]
         }
         legend_labels = [f'{stat}: {value:.2f}' for stat, value in stats.items()]
-        from matplotlib.lines import Line2D
         custom_lines = [Line2D([0], [0], color='blue', lw=4) for _ in stats]
         ax.legend(custom_lines, legend_labels, loc='upper right')
 
@@ -1342,7 +1341,7 @@ def plot_whiskers_with_data():
         legend_labels = [f"{stat}: {value}" for stat, value in stats.items()]
         all_legend_labels.extend(legend_labels)
 
-# Plotting
+    # Plotting
     fig, ax = plt.subplots(figsize=(26, 12))
     bp = ax.boxplot(dataframes, vert=True, labels=labels, showfliers=show_fliers)
 

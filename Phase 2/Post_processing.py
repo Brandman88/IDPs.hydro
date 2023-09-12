@@ -1231,7 +1231,6 @@ def plot_single_box_and_whisker():
     legend_labels = [f'{stat}: {value:.2f}' for stat, value in stats.items()]
 
     # Creating a custom legend
-    from matplotlib.lines import Line2D
     custom_lines = [Line2D([0], [0], color='blue', lw=4) for _ in stats]
     ax.legend(custom_lines, legend_labels, loc='upper left')
 

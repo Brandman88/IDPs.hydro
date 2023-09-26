@@ -698,6 +698,30 @@ def sort_csv():
     sorted_csv_name = f"sorted_{csv_name}"
     sorted_df.to_csv(sorted_csv_name, index=False)
 
+def reorder_columns_in_csv():
+    # Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    df = pd.read_csv(csv_name)
+    # For demonstration purposes, we'll use the df from earlier.
+    # In a real-world scenario, you'd read the CSV as: df = pd.read_csv(csv_name)
+    
+    # Display column names to the user and ask for the order
+    columns = show_dictionary_keys_from_csv(csv_name)
+    reordered_columns = pick_from_list_dynamic(columns, 'Columns')
+    
+    
+    # If the user did not select all columns, we append the unselected columns to the end
+    for col in columns:
+        if col not in reordered_columns:
+            reordered_columns.append(col)
+    
+    # Rearrange columns
+    df_reordered = df[reordered_columns]
+    
+    # Save the DataFrame to a new CSV file
+    reordered_csv_name = f"reordered_{csv_name}"
+    df_reordered.to_csv(reordered_csv_name, index=False)
+    print(f"Data with rearranged columns saved to {reordered_csv_name}.")
 
 def sort_csv_filter():
     

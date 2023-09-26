@@ -833,13 +833,14 @@ def aggregate_and_save_csv_data():
     print(f"Aggregated data saved to {aggregated_csv_name}.")
 
 
+
 def aggregate_group(group):
     agg_dict = {col: 'mean' for col in group if group[col].dtype in ['int64', 'float64']}
     for col in group:
         if group[col].dtype == 'object' and col != "EOM_TRANS_DATE":
             agg_dict[col] = lambda x: x.iloc[0]
     agg_dict["EOM_TRANS_DATE"] = lambda x: f"{x.min()}-{x.max()}" if x.nunique() > 1 else x.iloc[0]
-    return group.agg(agg_dict)
+    return group.agg(agg_dict)  
 
 
 def merge_csv_files():

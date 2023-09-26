@@ -59,6 +59,7 @@ def get_definitions_useful():
     del definitions['pick_from_list_dynamic']
     del definitions['scale_axes']
     del definitions['choose_category_return_dict']
+    del definitions['aggregate_group']
     return definitions    
 
 def choose_category_return_dict():
@@ -786,6 +787,35 @@ def group_csv_by_range():
         end_range += user_input
     
     print("Data has been grouped and saved to separate CSV files.")
+
+def aggregate_and_save_csv_data():
+    # 1. Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    
+    # 2. Ask the user for the column to be used as the unique identifier for aggregation
+    unique_identifier = show_dictionary_keys_from_csv_choose(csv_name, 'Select the unique identifier for aggregation')
+    
+    # 3. Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+
+    grouped = df.groupby(unique_identifier).apply(aggregate_group)
+    grouped = grouped.reset_index(drop=True)
+    num_transactions = df.groupby(unique_identifier).size()
+    grouped["number_of_transactions"] = grouped[unique_identifier].map(num_transactions)
+    
+    # 5. Save the aggregated DataFrame to a new CSV file
+    aggregated_csv_name = f"aggregated_{csv_name}"
+    grouped.to_csv(aggregated_csv_name, index=False)
+    print(f"Aggregated data saved to {aggregated_csv_name}.")
+
+
+def aggregate_group(group):
+    agg_dict = {col: 'mean' for col in group if group[col].dtype in ['int64', 'float64']}
+    for col in group:
+        if group[col].dtype == 'object' and col != "EOM_TRANS_DATE":
+            agg_dict[col] = lambda x: x.iloc[0]
+    agg_dict["EOM_TRANS_DATE"] = lambda x: f"{x.min()}-{x.max()}" if x.nunique() > 1 else x.iloc[0]
+    return group.agg(agg_dict)
 
 
 def merge_csv_files():

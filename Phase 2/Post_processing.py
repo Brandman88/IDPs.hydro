@@ -59,6 +59,7 @@ def get_definitions_useful():
     del definitions['pick_from_list_dynamic']
     del definitions['scale_axes']
     del definitions['choose_category_return_dict']
+    del definitions['aggregate_group']
     return definitions    
 
 def choose_category_return_dict():
@@ -335,26 +336,30 @@ def extract_number(s):
     return int(numbers[0]) if numbers else 0
 
 def filter_dataframe_by_group_selection(grouped_dataframe,label):
-    list_of_all_groups = list(grouped_dataframe.groups.keys())
-    choosing_type = ['All groups','All but certain groups','Select specific groups']
-    choosing_type_num=pick_from_list_static(choosing_type,'What groups do you want in your data (filtering)')
-    
-    if choosing_type_num == 1:
-        # Return all groups
-        list_of_selected_groups=list_of_all_groups
-    elif choosing_type_num  == 2:
-        # Prompt the user for groups to exclude
-        list_of_excluded_groups=pick_from_list_dynamic(list_of_all_groups , f'Select a {label} to be excluded from plotted data')
-        # Remove the excluded groups from the list of all groups
-        list_of_selected_groups = [group for group in list_of_all_groups if group not in list_of_excluded_groups]    
-    elif choosing_type_num  == 3:
-        # Prompt the user for specific groups
-        list_of_selected_groups=pick_from_list_dynamic(list_of_all_groups , f'Select a {label} to be in plotted data')
+    while True:
+        list_of_all_groups = list(grouped_dataframe.groups.keys())
+        choosing_type = ['All groups','All but certain groups','Select specific groups']
+        choosing_type_num=pick_from_list_static(choosing_type,'What groups do you want in your data (filtering)')
+        if choosing_type_num == 1:
+            # Return all groups
+            list_of_selected_groups=list_of_all_groups
+        elif choosing_type_num  == 2:
+            # Prompt the user for groups to exclude
+            list_of_excluded_groups=pick_from_list_dynamic(list_of_all_groups , f'Select a {label} to be excluded from plotted data')
+            # Remove the excluded groups from the list of all groups
+            list_of_selected_groups = [group for group in list_of_all_groups if group not in list_of_excluded_groups]    
+        elif choosing_type_num  == 3:
+            # Prompt the user for specific groups
+            list_of_selected_groups=pick_from_list_dynamic(list_of_all_groups , f'Select a {label} to be in plotted data')
 
-    # Get the DataFrame for each selected group
-    filtered_dataframe = pd.concat([grouped_dataframe.get_group(group) for group in list_of_selected_groups])#for some reason it needs a memory allocation that only comes from grouping doing anything to it removes that
-    filtered_grouped_dataframe=filtered_dataframe.groupby(label)
-    return filtered_grouped_dataframe
+        # Get the DataFrame for each selected group
+        filtered_dataframe = pd.concat([grouped_dataframe.get_group(group) for group in list_of_selected_groups])#for some reason it needs a memory allocation that only comes from grouping doing anything to it removes that
+        filtered_grouped_dataframe=filtered_dataframe.groupby(label)
+        grouped_dataframe=filtered_grouped_dataframe
+        keys=['Yes','No']
+        chosen_key_num=pick_from_list_static(keys,f'Would like to filter data further?')
+        if chosen_key_num==2:
+           return filtered_dataframe
 
 def plot_something_2locations_relative_to_one_variable_basic():
     loc1=list_csv_files_in_directory_choose('Location 1(dependent)')
@@ -692,6 +697,168 @@ def sort_csv():
     # Write the sorted DataFrame to a new CSV file
     sorted_csv_name = f"sorted_{csv_name}"
     sorted_df.to_csv(sorted_csv_name, index=False)
+
+def reorder_columns_in_csv():
+    # Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    df = pd.read_csv(csv_name)
+    # For demonstration purposes, we'll use the df from earlier.
+    # In a real-world scenario, you'd read the CSV as: df = pd.read_csv(csv_name)
+    
+    # Display column names to the user and ask for the order
+    columns = show_dictionary_keys_from_csv(csv_name)
+    reordered_columns = pick_from_list_dynamic(columns, 'Columns')
+    
+    
+    # If the user did not select all columns, we append the unselected columns to the end
+    for col in columns:
+        if col not in reordered_columns:
+            reordered_columns.append(col)
+    
+    # Rearrange columns
+    df_reordered = df[reordered_columns]
+    
+    # Save the DataFrame to a new CSV file
+    reordered_csv_name = f"reordered_{csv_name}"
+    df_reordered.to_csv(reordered_csv_name, index=False)
+    print(f"Data with rearranged columns saved to {reordered_csv_name}.")
+
+def sort_csv_filter():
+    
+    csv_name=list_csv_files_in_directory_choose('Location of csv file')
+    column_name=show_dictionary_keys_from_csv_choose(csv_name,'Varaibles to choose from')
+    # Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+    
+    label = show_dictionary_keys_from_csv_choose(column_name, 'Label')
+    
+    # Group the data by item name
+    grouped_data = df.groupby(label)
+    filtered_grouped_data=filter_dataframe_by_group_selection(grouped_data,label)
+
+
+    # Validate if all entries in the column are numeric
+    if not pd.to_numeric(df[column_name], errors='coerce').notnull().all():
+        sorted_df = df.sort_values(by=column_name)
+
+    # Sort the DataFrame based on the specified column
+    if column_name == 'name':
+        name_values = df[column_name]
+        sorted_indices = sorted(range(len(name_values)), key=lambda i: extract_number(name_values[i]) if re.search(r'\d+', name_values[i]) else float('inf'))
+        sorted_df = df.iloc[sorted_indices]
+
+        # Move sorted column to the front
+        sorted_df = sorted_df[[column_name] + sorted_df.columns.difference([column_name]).tolist()]
+    else:
+        sorted_df = df.sort_values(by=column_name)
+
+        # Move sorted column to the front
+        sorted_df = sorted_df[[column_name] + sorted_df.columns.difference([column_name]).tolist()]
+
+    # Write the sorted DataFrame to a new CSV file
+    sorted_csv_name = f"sorted_{csv_name}"
+    sorted_df.to_csv(sorted_csv_name, index=False)
+
+def group_csv_by_range():
+    csv_name=list_csv_files_in_directory_choose('Location of csv file')
+    while True:
+        user_input = input("Please specify the range you would like to group by\n (if you would like to group by 5 then an example would be 0-5,6-10,.. and so on)").strip()
+        if user_input == '0':
+            print("Exiting...")
+            exit()
+        elif not user_input.isdigit() or int(user_input) < 0:
+            print("Invalid choice. Please try again.")
+        else:
+            user_input = int(user_input)
+            break
+    column_name=show_dictionary_keys_from_csv_choose(csv_name,'Varaibles to choose from')
+    # Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+    max_value = df[column_name].max()
+    start_range = 0
+    # Validate if all entries in the column are numeric
+    if not pd.to_numeric(df[column_name], errors='coerce').notnull().all():
+        sorted_df = df.sort_values(by=column_name)
+
+    # Sort the DataFrame based on the specified column
+    if column_name == 'name':
+        name_values = df[column_name]
+        sorted_indices = sorted(range(len(name_values)), key=lambda i: extract_number(name_values[i]) if re.search(r'\d+', name_values[i]) else float('inf'))
+        sorted_df = df.iloc[sorted_indices]
+
+        # Move sorted column to the front
+        sorted_df = sorted_df[[column_name] + sorted_df.columns.difference([column_name]).tolist()]
+
+    else:
+        sorted_df = df.sort_values(by=column_name)
+
+        # Move sorted column to the front
+        sorted_df = sorted_df[[column_name] + sorted_df.columns.difference([column_name]).tolist()]
+    
+    
+    while start_range <= max_value:
+        end_range = start_range + user_input
+        
+        # Create a subset of the DataFrame based on the current range
+        subset_df = sorted_df[(sorted_df[column_name] >= start_range) & (sorted_df[column_name] < end_range)]
+        
+        # Write the subset to a new CSV file
+        subset_csv_name = f"subset_{start_range}-{end_range}_{csv_name}"
+        subset_df.to_csv(subset_csv_name, index=False)
+        
+        # Update the start_range and end_range for the next iteration
+        start_range += user_input
+        end_range += user_input
+    
+    print("Data has been grouped and saved to separate CSV files.")
+
+def group_csv_by_demographic():
+    # Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    
+    # Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+    
+    # Display the column names to the user and ask them to choose the demographic column
+    demographic_column = show_dictionary_keys_from_csv_choose(csv_name, 'Choose the demographic column')
+    
+    # Group the data by the chosen demographic column
+    for demographic_value, group_df in df.groupby(demographic_column):
+        # Create a CSV file name based on the demographic value
+        group_csv_name = f"group_{demographic_value}_{csv_name}"
+        group_df.to_csv(group_csv_name, index=False)
+        print(f"Data for demographic value '{demographic_value}' saved to {group_csv_name}.")
+
+def aggregate_and_save_csv_data():
+    # 1. Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    
+    # 2. Ask the user for the column to be used as the unique identifier for aggregation
+    unique_identifier = show_dictionary_keys_from_csv_choose(csv_name, 'Select the unique identifier for aggregation')
+    
+    # 3. Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+
+    grouped = df.groupby(unique_identifier).apply(aggregate_group)
+    grouped = grouped.reset_index(drop=True)
+    num_transactions = df.groupby(unique_identifier).size()
+    grouped["number_of_transactions"] = grouped[unique_identifier].map(num_transactions)
+    
+    # 5. Save the aggregated DataFrame to a new CSV file
+    aggregated_csv_name = f"aggregated_{csv_name}"
+    grouped.to_csv(aggregated_csv_name, index=False)
+    print(f"Aggregated data saved to {aggregated_csv_name}.")
+
+
+
+def aggregate_group(group):
+    agg_dict = {col: 'mean' for col in group if group[col].dtype in ['int64', 'float64']}
+    for col in group:
+        if group[col].dtype == 'object' and col != "EOM_TRANS_DATE":
+            agg_dict[col] = lambda x: x.iloc[0]
+    agg_dict["EOM_TRANS_DATE"] = lambda x: f"{x.min()}-{x.max()}" if x.nunique() > 1 else x.iloc[0]
+    return group.agg(agg_dict)  
+
 
 def merge_csv_files():
     file1=list_csv_files_in_directory_choose('File Location 1')
@@ -1357,6 +1524,8 @@ def plot_whiskers_with_data():
     plt.tight_layout()
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
+
+
 
 
 

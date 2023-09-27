@@ -812,6 +812,23 @@ def group_csv_by_range():
     
     print("Data has been grouped and saved to separate CSV files.")
 
+def group_csv_by_demographic():
+    # Ask the user for the CSV file location
+    csv_name = list_csv_files_in_directory_choose('Location of csv file')
+    
+    # Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_name)
+    
+    # Display the column names to the user and ask them to choose the demographic column
+    demographic_column = show_dictionary_keys_from_csv_choose(csv_name, 'Choose the demographic column')
+    
+    # Group the data by the chosen demographic column
+    for demographic_value, group_df in df.groupby(demographic_column):
+        # Create a CSV file name based on the demographic value
+        group_csv_name = f"group_{demographic_value}_{csv_name}"
+        group_df.to_csv(group_csv_name, index=False)
+        print(f"Data for demographic value '{demographic_value}' saved to {group_csv_name}.")
+
 def aggregate_and_save_csv_data():
     # 1. Ask the user for the CSV file location
     csv_name = list_csv_files_in_directory_choose('Location of csv file')

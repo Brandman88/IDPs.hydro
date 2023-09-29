@@ -140,7 +140,7 @@ T_Kelvin=float(row_specific_info_csv('Absolute Temperature'))
 
 # In kCal units
 KT = T_Kelvin*0.001987204259 # Boltzmann constant in kCal/mol/K
-EPSILON = 0.18 # KCal/mol
+EPSILON = 0.2 # KCal/mol
 
 ionic_concentration = row_specific_info_csv('Ionic Concentration')
 

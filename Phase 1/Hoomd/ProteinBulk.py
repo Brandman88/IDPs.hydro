@@ -160,8 +160,8 @@ else:
 
 fepsw = lambda T : 5321/T+233.76-0.9297*T+0.1417*1e-2*T*T-0.8292*1e-6*T**3 #temperature dependent dielectric constant of water	
 epsw = fepsw(T_Kelvin) # dielectric constant of water at T 	
-lB = (1.6021766**2/(4*np.pi*8.854188*epsw))*(6.022*1000/KT) # Bjerrum length in nm	
-#lB = (1.6021766**2/(4*np.pi*8.854188*80))*(6.022*1000/KT) #  Bjerrum length in nm	
+lB = (1.6021766**2/(4*np.pi*8.854188*epsw))*(6.022*1000/KT)/4.184 # Bjerrum length in nm	
+#lB = (1.6021766**2/(4*np.pi*8.854188*80))*(6.022*1000/KT)/4.184 #  Bjerrum length in nm	
 
 yukawa_eps = lB*KT	
 yukawa_kappa = np.sqrt(8*np.pi*lB*ionic_concentration*6.022/10)	
@@ -173,11 +173,11 @@ fi_sys.write("Number of particles: %d\n" % ParticleN)
 fi_sys.write("Box length (nm): %f\n" % BOX_L)
 fi_sys.write("Temperature (K): %d\n" % T_Kelvin)
 fi_sys.write("LJ epsilon (kCal/mol): %f\n" % EPSILON)
-fi_sys.write("Boltzmann constant*T (kCal/mol): %f\n" % KT)
+fi_sys.write("Gas constant*T (kCal/mol): %f\n" % KT)
 fi_sys.write(f"Dielectric constant of water at T={T_Kelvin}: %f\n" % epsw)
 fi_sys.write("Bjerrum length (nm): %f\n" % lB)
 fi_sys.write("Ionic concentration (M): %f\n" % ionic_concentration)
-fi_sys.write("Yukawa epsilon (kCal/mol): %f\n" % yukawa_eps)
+fi_sys.write("Yukawa epsilon (nm kCal/mol): %f\n" % yukawa_eps)
 fi_sys.write("Yukawa kappa (nm^-1): %f\n" % yukawa_kappa)
 fi_sys.write("=================================================== \n")
 fi_sys.close()
@@ -298,7 +298,7 @@ for i in range (len(aakeys)):
 
 lj1.set_params(mode='shift')
 yukawa.set_params(mode='shift')
-nl.reset_exclusions(exclusions = []);
+nl.reset_exclusions(exclusions = ['bond']);
 
 # ========================= MD Integrator =======================================
 hoomd.md.integrate.mode_standard(dt=TIME_STEP);

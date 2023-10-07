@@ -139,16 +139,26 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
     cutoff = arguments['Cutoff']
     cutoff_default = 40.0  # Set your desired default value here
     
+    trajectory = arguments['Trajectory']
+    trajectory_default = 'Running_Config.pdb'  # Set your desired default value here
+    
+    output = arguments['Output']
+    output_default = 'Running_Config.out'  # Set your desired default value here
 
-
+    
     # Convert frequency to int or use the default value
     frequency = int(frequency) if frequency is not None else frequency_default
     arguments['Frequency'] = frequency
 
     cutoff = float(cutoff) if cutoff is not None else cutoff_default
     arguments['Cutoff'] = cutoff
-
-
+    
+    trajectory = trajectory if trajectory is not None else trajectory_default
+    arguments['Trajectory'] = trajectory
+    
+    output = output if output is not None else output_default
+    arguments['Output'] = output
+    
     return arguments
 
 KELVIN_TO_KT = unit.AVOGADRO_CONSTANT_NA * unit.BOLTZMANN_CONSTANT_kB / unit.kilocalorie_per_mole

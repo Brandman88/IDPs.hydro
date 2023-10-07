@@ -98,7 +98,8 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
     except Exception as e:
         print(f"An error occurred while executing the command: {str(e)}")
         # Handle the exception as needed
-     
+
+
 def est_time_equation(number_of_letters):
     estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
     return estimated_time
@@ -245,50 +246,6 @@ def update_run_sh(group_ids, cur_dir, over_guess_percent, df_with_groups):
             file.writelines(lines)
         file.close()
 
-def read_job_list(file_path):
-    with open(file_path, "r") as file:
-        job_ids = file.read().splitlines().strip()
-    return job_ids
-
-def get_scontrol_info(job_id):
-    cmd = f"scontrol show job {job_id}"
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    output, _ = process.communicate()
-    
-    # Extracting relevant information using regular expressions
-    node_list = re.search(r"NodeList=([^\s]+)", output).group(1).replace(",", " ")
-    min_cpus_node = re.search(r"MinCPUsNode=(\d+)", output).group(1)
-    mem = re.search(r"mem=([^\s,]+)", output).group(1)
-    billing = re.search(r"billing=(\d+)", output).group(1)
-    
-    return node_list, min_cpus_node, mem, billing
-
-def update_csv_with_scontrol_info(csv_path, node_list, min_cpus_node, mem, billing):
-    df = pd.read_csv(csv_path)
-    df["Node(s) That Did The Computation"] = node_list
-    df["CPUs Used Per Node"] = min_cpus_node
-    df["Total Memory Allocated"] = mem
-    df["Amount of CPUs Billed"] = billing
-    
-    # Save the modified dataframe back to the same csv file
-    df.to_csv(csv_path, index=False)
-
-def update_csv_for_all_groups(job_ids, cur_dir, group_ids):
-    for idx, (group_id, job_id) in enumerate(zip(group_ids, job_ids)):
-        # Get information from scontrol
-        node_list, min_cpus_node, mem, billing = get_scontrol_info(job_id)
-        
-        
-        group_directory = os.path.join(cur_dir, 'Calculations', str(group_id))
-        csv_files = [f for f in os.listdir(group_directory) if os.path.isfile(os.path.join(group_directory, f)) and f.endswith('.csv')]# Get the path to the relevant CSV file
-        if not csv_files:
-            print(f"No CSV file found in directory {group_directory} for group_id {group_id}. Skipping...")
-            continue
-        csv_path = os.path.join(group_directory, csv_files[0])
-        
-        # Update CSV file
-        update_csv_with_scontrol_info(csv_path, node_list, min_cpus_node, mem, billing)
-
 
 def jump_start(group_ids, cur_dir):
     # Iterate through each group ID directory
@@ -307,8 +264,6 @@ def jump_start(group_ids, cur_dir):
     # Return to the original working directory
     os.chdir(cur_dir)
     job_id_gather(group_ids, cur_dir)
-    job_ids = read_job_list('Job_list.txt')
-    update_csv_for_all_groups(job_ids, cur_dir, group_ids)
     
 def job_id_gather(group_ids, cur_dir):
     job_list=[]
@@ -412,6 +367,12 @@ def data_gather(file_path, check_dir_cal):
     job_list_file = os.path.join(cur_dir, 'Job_list.txt')
     shutil.copy(job_list_file, check_dir_cal)
     print(f"Copied '{job_list_file}' to '{check_dir_cal}'")
+    
+    out_files = [f for f in os.listdir(cur_dir) if os.path.isfile(os.path.join(cur_dir, f)) and f.endswith('.out') and f.startswith('job')]
+    # Copy the 'Job_list.txt' file to the check_dir_cal directory
+    out_list_file = os.path.join(cur_dir, out_files[0])
+    shutil.copy(out_list_file, check_dir_cal)
+    print(f"Copied '{out_list_file}' to '{check_dir_cal}'")
 
 def packing_up():
     """

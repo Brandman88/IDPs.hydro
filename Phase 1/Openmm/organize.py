@@ -18,6 +18,8 @@ import pandas as pd
 import glob
 import matplotlib.pyplot as plt
 import re
+import subprocess
+
 
 parameters="multi_run.dat"
 #num_run is first number, says how many runs are we doing?
@@ -263,6 +265,45 @@ def add_hoomd_file_multi(list):
             list.append(file)  # Remove the file        
     return list
 
+
+def get_scontrol_info(job_id):
+    """
+    Executes scontrol command and fetches job information using regular expressions.
+    Returns a tuple containing node_list, min_cpus_node, mem, and billing.
+    """
+    cmd = f"scontrol show job {job_id}"
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    output, _ = process.communicate()
+    
+    node_list = re.search(r"NodeList=([^\s]+)", output)
+    min_cpus_node = re.search(r"MinCPUsNode=(\d+)", output)
+    mem = re.search(r"Mem=([^\s,]+)", output)  # Adjusted regex to correct
+    billing = re.search(r"Billing=\d+", output)  # Adjusted regex to correct
+    
+    return (
+        node_list.group(1) if node_list else None,
+        min_cpus_node.group(1) if min_cpus_node else None,
+        mem.group(1) if mem else None,
+        billing.group(1) if billing else None
+    )
+
+def update_csv_with_scontrol_info(csv_path, job_id, scontrol_info):
+    """
+    Updates a specified CSV file with scontrol information using pandas.
+    """
+    # Load the CSV file into a DataFrame
+    df = pd.read_csv(csv_path)
+    
+    # Extract info from scontrol_info
+    node_list, min_cpus_node, mem, billing = scontrol_info
+    
+    # Find the row with the corresponding JobID and update it
+    df.loc[df['JobID'] == job_id, ['NodeList', 'MinCPUsNode', 'Mem', 'Billing']] = node_list, min_cpus_node, mem, billing
+    
+    # Save the updated DataFrame back to the CSV file
+    df.to_csv(csv_path, index=False)
+
+
 # Special use-case for plotting current inside
 def clean_up():
     """
@@ -271,7 +312,11 @@ def clean_up():
     num_run, start, marker, list_files = read_multi_run()  # Reading details from multiple run
     if start > num_run:  # Only proceed if the starting number is greater than the total number of runs
         read_dat_files_data_merger_create_csv()
+        job_id = find_stokes_num_from_hoomd_file()
+        scontrol_info = get_scontrol_info(job_id)
+        update_csv_with_scontrol_info('merged_config_stat_results.csv', job_id, scontrol_info)
         remove_hoomd_file()
+        
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''

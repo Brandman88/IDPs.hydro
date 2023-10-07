@@ -9,8 +9,8 @@ from collections import defaultdict
 import datetime
 import glob
 
-max_safe_group=10
-over_guess_percent=25 
+max_safe_group=100
+over_guess_percent=15 
 
 cur_dir=os.getcwd()
 parent_dir = os.path.dirname(cur_dir)
@@ -263,7 +263,6 @@ def jump_start(group_ids, cur_dir):
     job_id_gather(group_ids, cur_dir)
     
 def job_id_gather(group_ids, cur_dir):
-    time.sleep(150)
     job_list=[]
     # Iterate through each group ID directory
     
@@ -454,7 +453,7 @@ def decide(file_path,in_process):
         print(f"Total Estimated Time: {total_time}")
         print(f"Average Estimated Time: {average_time}")
         print(f"Number of Rows: {num_rows}")
-        print(df_sorted.head())
+        print(df_sorted)
         df_grouped=create_optimized_groups(df_sorted, max_time, max_safe_group)
         group_ids=get_unique_group_ids(df_grouped)
         copy_files_and_create_csv_by_group(df_grouped,cur_dir, group_ids,file_path)

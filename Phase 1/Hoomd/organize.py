@@ -488,9 +488,10 @@ def get_scontrol_info(job_id):
         billing.group(1) if billing else None
     )
 
-def update_csv_with_scontrol_info(csv_path, job_id, scontrol_info):
+def update_csv_with_scontrol_info(csv_path, scontrol_info):
     """
     Updates a specified CSV file with scontrol information using pandas.
+    Applies the scontrol information to all rows in the CSV file.
     """
     # Load the CSV file into a DataFrame
     df = pd.read_csv(csv_path)
@@ -498,8 +499,8 @@ def update_csv_with_scontrol_info(csv_path, job_id, scontrol_info):
     # Extract info from scontrol_info
     node_list, min_cpus_node, mem, billing = scontrol_info
     
-    # Find the row with the corresponding JobID and update it
-    df.loc[df['JobID'] == job_id, ['NodeList', 'MinCPUsNode', 'Mem', 'Billing']] = node_list, min_cpus_node, mem, billing
+    # Update all rows with the scontrol info
+    df.loc[:, ['NodeList', 'MinCPUsNode', 'Mem', 'Billing']] = node_list, min_cpus_node, mem, billing
     
     # Save the updated DataFrame back to the CSV file
     df.to_csv(csv_path, index=False)

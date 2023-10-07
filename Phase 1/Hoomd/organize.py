@@ -442,6 +442,30 @@ def add_hoomd_file_multi(list):
             list.append(file)  # Remove the file        
     return list
 
+def extract_tps_from_debug_file(debug_file=dest_file_debug):
+    tps_values = []
+    with open(debug_file, "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            if "Average TPS:" in line:
+                # Extract the float value and append it to the list
+                tps = float(line.split(":")[1].strip())
+                tps_values.append(tps)
+    return tps_values
+
+def add_tps_to_csv(csv_file, tps_values):
+    df = pd.read_csv(csv_file)
+    
+    # Ensure there's alignment between the number of rows in the CSV and the number of TPS values
+    if df.shape[0] == len(tps_values):
+        df['Average TPS'] = tps_values
+    else:
+        print("Mismatch between number of rows in CSV and number of TPS values.")
+    
+    # Save the updated DataFrame back to the CSV file
+    df.to_csv(csv_file, index=False)
+
+
 # Special use-case for plotting current inside
 def clean_up():
     """
@@ -451,6 +475,9 @@ def clean_up():
     if start > num_run:  # Only proceed if the starting number is greater than the total number of runs
         read_dat_files_data_merger_create_csv()
         remove_hoomd_file()
+        tps_values = extract_tps_from_debug_file()
+        add_tps_to_csv('merged_config_stat_results.csv', tps_values)
+        
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data.csv"):
     '''Define function to read entire CSV and return a dictionary.'''

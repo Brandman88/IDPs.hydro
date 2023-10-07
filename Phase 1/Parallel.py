@@ -103,6 +103,8 @@ def est_time_equation(number_of_letters):
     return estimated_time
 
 def est_time_equation_open(number_of_letters, number_of_steps):
+    if number_of_steps==None:
+        number_of_steps=int(((3*number_of_letters)**2.2)/0.01)
     estimated_time = ((0.0000000475566667*(number_of_letters**1.4694734396))*number_of_steps)
     return estimated_time
 

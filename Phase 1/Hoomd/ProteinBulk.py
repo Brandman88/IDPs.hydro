@@ -183,7 +183,7 @@ fi_sys.write("=================================================== \n")
 fi_sys.close()
 # ====================================================================================
 
-TIME_STEP = 0.01
+TIME_STEP = 0.01 # in picoseconds given current units
 nwrite = 1000 # Frequency of saving configurations
 
 Rouse_Steps = int((5*(ParticleN)**2.2)/TIME_STEP)

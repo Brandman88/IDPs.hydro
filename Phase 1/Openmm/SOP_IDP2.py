@@ -12,7 +12,7 @@ def read_entire_csv_return_dict(dest_required_file_csv = "data_multi.csv"):
     '''Define function to read entire CSV and return a dictionary.'''
     # Using pandas to read the CSV file located at the destination provided.
     df = pd.read_csv(dest_required_file_csv)
-
+    df['letters_count'] = df['Sequence'].apply(len)
     # Converting the dataframe into a list of dictionaries where each dictionary represents a row of data.
     data = df.to_dict('records')
 
@@ -126,7 +126,9 @@ equilibrium_data_forfeiture,num_run,start,marker,clean_list = get_equilibrium_da
 
 
 def parse_arguments_from_csv(start,filename='data_multi.csv'):
+    TIME_STEP=0.01 #in Picoseconds
     df = pd.read_csv(filename)
+    ParticleN=row_specific_info_csv(start,'letters_count')
     row_index = int(start) - 1  # Assuming start is a string representing the row number
     arguments = df.iloc[row_index].to_dict()
 
@@ -134,7 +136,7 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
     arguments = {k: v if pd.notna(v) else None for k, v in arguments.items()}
 
     frequency = arguments['Frequency']
-    frequency_default = 10000  # Set your desired default value here
+    frequency_default = 1000  # Set your desired default value here
 
     cutoff = arguments['Cutoff']
     cutoff_default = 40.0  # Set your desired default value here
@@ -144,6 +146,9 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
     
     output = arguments['Output']
     output_default = 'Running_Config.out'  # Set your desired default value here
+
+    number_of_steps = arguments['Number of Steps']
+    number_of_steps_default = int((3*(ParticleN)**2.2)/TIME_STEP)  # Set your desired default value here
 
     
     # Convert frequency to int or use the default value
@@ -159,7 +164,12 @@ def parse_arguments_from_csv(start,filename='data_multi.csv'):
     output = output if output is not None else output_default
     arguments['Output'] = output
     
+    number_of_steps = number_of_steps if number_of_steps is not None else number_of_steps_default
+    arguments['Number of Steps'] = number_of_steps    
+    
     return arguments
+
+
 
 KELVIN_TO_KT = unit.AVOGADRO_CONSTANT_NA * unit.BOLTZMANN_CONSTANT_kB / unit.kilocalorie_per_mole
 
@@ -204,8 +214,9 @@ simu.cutoff = args.cutoff
 
 
 
-equilibrium_steps=(simu.Nstep)*(equilibrium_data_forfeiture/100)
-steps_left=(simu.Nstep-equilibrium_steps)
+equilibrium_steps=simu.Nstep
+steps_left=(simu.Nstep)/(equilibrium_data_forfeiture/100)-(simu.Nstep)
+simu.Nstep=steps_left+equilibrium_steps
 
 
 T_unitless = simu.temp * KELVIN_TO_KT

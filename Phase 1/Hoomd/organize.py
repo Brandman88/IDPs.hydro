@@ -475,35 +475,55 @@ def get_scontrol_info(job_id):
     cmd = f"scontrol show job {job_id}"
     process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     output, _ = process.communicate()
-    
-    node_list = re.search(r"NodeList=([^\s]+)", output)
-    min_cpus_node = re.search(r"MinCPUsNode=(\d+)", output)
-    mem = re.search(r"Mem=([^\s,]+)", output)  # Adjusted regex to correct
-    billing = re.search(r"Billing=\d+", output)  # Adjusted regex to correct
-    
-    return (
-        node_list.group(1) if node_list else None,
-        min_cpus_node.group(1) if min_cpus_node else None,
-        mem.group(1) if mem else None,
-        billing.group(1) if billing else None
-    )
 
-def update_csv_with_scontrol_info(csv_path, scontrol_info):
+    # Initialize variables to store extracted data
+    node_list = min_cpus_node = mem = billing = None
+    
+    # Iterate through each line in the output
+    for line in output.split("\n"):
+        # Check if the relevant information is in the line and extract it
+        if "NodeList=" in line:
+            node_list = re.search(r"NodeList=([^\s]+)", line)
+            node_list = node_list.group(1) if node_list else None
+        elif "MinCPUsNode=" in line:
+            min_cpus_node = re.search(r"MinCPUsNode=(\d+)", line)
+            min_cpus_node = min_cpus_node.group(1) if min_cpus_node else None
+        elif "mem=" in line:
+            mem = re.search(r"mem=([^\s,]+)", line)
+            mem = mem.group(1) if mem else None
+            
+    if billing is None:
+        billing = re.search(r"billing=(\d+)", output)
+        billing = billing.group(1) if billing else None
+    
+    
+        
+    # Diagnostic print statements
+    print("scontrol output:\n", output)
+    print("NodeList match:", node_list)
+    print("MinCPUsNode match:", min_cpus_node)
+    print("Mem match:", mem)
+    print("Billing match:", billing)
+    
+    
+    return node_list, min_cpus_node, mem, billing
+
+def update_csv_with_scontrol_info(scontrol_info):
     """
     Updates a specified CSV file with scontrol information using pandas.
     Applies the scontrol information to all rows in the CSV file.
     """
     # Load the CSV file into a DataFrame
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv('merged_config_stat_results.csv')
     
     # Extract info from scontrol_info
     node_list, min_cpus_node, mem, billing = scontrol_info
     
     # Update all rows with the scontrol info
-    df.loc[:, ['NodeList', 'MinCPUsNode', 'Mem', 'Billing']] = node_list, min_cpus_node, mem, billing
+    df.loc[:, ['Node(s) That Did The Computation', 'CPUs Used Per Node', 'Total Memory Allocated', 'Amount of CPUs Billed']] = node_list, min_cpus_node, mem, billing
     
     # Save the updated DataFrame back to the CSV file
-    df.to_csv(csv_path, index=False)
+    df.to_csv('merged_config_stat_results.csv', index=False)
 
 
 
@@ -520,7 +540,7 @@ def clean_up():
         job_id = find_stokes_num_from_hoomd_file()
         remove_hoomd_file()
         scontrol_info = get_scontrol_info(job_id)
-        update_csv_with_scontrol_info('merged_config_stat_results.csv', job_id, scontrol_info)
+        update_csv_with_scontrol_info(scontrol_info)
         
         
 def read_entire_csv_return_dict(dest_required_file_csv = "data.csv"):

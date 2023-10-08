@@ -101,7 +101,7 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
 
 
 def est_time_equation(number_of_letters):
-    estimated_time = ((2.8912195151139 * 10**-7) * number_of_letters**4.14262) + 10
+    estimated_time =(0.00000002*(number_of_letters)**4 + 0.0002(number_of_letters)**3 -0.0327*(number_of_letters)**2 + 1.6003*(number_of_letters) + 30.112)
     return estimated_time
 
 def est_time_equation_open(number_of_letters, number_of_steps):

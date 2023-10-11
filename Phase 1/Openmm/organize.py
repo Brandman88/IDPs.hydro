@@ -440,7 +440,8 @@ def read_dat_files_data_merger_create_csv(csv_file="data_multi.csv", dir_comp=di
     :param csv_file: Location of the CSV file to merge data with
     :param dir_comp: The directory where the .dat files are located
     """
-
+    histogram_csv="Histogram.csv"
+    
     # Use glob to get all the .dat files in subdirectories
     config_stat_files = glob.glob(f'{dir_comp}/**/config_stat.dat', recursive=True)
     csv_data = pd.read_csv(csv_file)
@@ -474,6 +475,23 @@ def read_dat_files_data_merger_create_csv(csv_file="data_multi.csv", dir_comp=di
         df_subset = df[non_matching_headers].copy()  # Select only the non-matching columns from df
         df_subset.index = [matching_rows[matching_array_value]]  # Wrap the value in a list to create a single-item collection
 
+        # Assume histogram file is in the same directory as the config_stat.dat file
+        histogram_filename = os.path.join(os.path.dirname(filename), "Histogram.csv")
+
+        # Perform calculations based on the 'Histogram.csv' file
+        histogram_data = pd.read_csv(histogram_filename)
+        histogram_data['Step'] = pd.to_numeric(histogram_data['Step'], errors='coerce')
+        histogram_data['Elapsed Time (s)'] = pd.to_numeric(histogram_data['Elapsed Time (s)'], errors='coerce')
+        step_diff = histogram_data['Step'].iloc[-1] - histogram_data['Step'].iloc[0]
+        time_diff = histogram_data['Elapsed Time (s)'].iloc[-1] - histogram_data['Elapsed Time (s)'].iloc[0]
+        if time_diff != 0:
+            speed = step_diff / time_diff
+        else:
+            speed = 0  
+
+        # Append the calculated speed to the DataFrame subset before merging
+        df_subset['Average TPS'] = speed
+        
         # Format the values as floats with a maximum of 3 decimal places
         df_subset = df_subset.applymap(lambda x: int(x) if round(float(x), 3).is_integer() else round(float(x), 3))
         dataframes.append(df_subset)  # Append the subset DataFrame to the list of dataframes

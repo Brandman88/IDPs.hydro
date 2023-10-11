@@ -25,6 +25,7 @@ file_path_m_data = "data_multi.csv"
 
 
 
+    
 if os.path.exists(check_dir_cal) and len(os.listdir(check_dir_cal))!=0:
     in_process = True
 else:
@@ -100,22 +101,52 @@ def execute_shell_command_start(command, output_file="debug_file.txt"):
         # Handle the exception as needed
 
 
+
+def adjust_and_save_equilibrium_data_forfeiture(df):
+    # Apply a function to adjust 'Equilibrium Data Forfeiture' for each row
+    df['Equilibrium Data Forfeiture'] = df['Equilibrium Data Forfeiture'].apply(
+        lambda equilibrium_data_forfeiture: adjust_equilibrium_data(equilibrium_data_forfeiture)
+    )    
+    return df
+
+def adjust_equilibrium_data(equilibrium_data_forfeiture):
+    # Check if the value is empty or greater than or equal to 100
+    try:
+        if equilibrium_data_forfeiture == "" or float(equilibrium_data_forfeiture) >= 100:
+            return 70
+        else:
+            return equilibrium_data_forfeiture
+    except ValueError:
+        return 70
+    
+    
+
 def est_time_equation(number_of_letters):
-    estimated_time =(0.00000002*(number_of_letters)**4 + 0.0002(number_of_letters)**3 -0.0327*(number_of_letters)**2 + 1.6003*(number_of_letters) + 30.112)
+    estimated_time =(0.00000002*(number_of_letters)**4 + 0.0002*(number_of_letters)**3 -0.0327*(number_of_letters)**2 + 1.6003*(number_of_letters) + 30.112)
+    print(f"Estimated time:  {estimated_time}")
     return estimated_time
 
+def calculate_steps(number_of_letters,Equilibrium_Data_Forfeiture):
+    temp=int((float(3*number_of_letters)**2.2)/0.01)
+    return (temp*100/Equilibrium_Data_Forfeiture)    
+    
+
 def est_time_equation_open(number_of_letters, number_of_steps):
-    if number_of_steps==None:
-        number_of_steps=int(((3*number_of_letters)**2.2)/0.01)
     estimated_time = ((0.0000000475566667*(number_of_letters**1.4694734396))*number_of_steps)
+    print(f"Time Estimate :{estimated_time}")
     return estimated_time
 
 def process_csv(file_path):
     # Read the CSV file
     df = pd.read_csv(file_path)
-
+    
     # Create a temporary column with the number of letters in "Sequence"
     df['letters_count'] = df['Sequence'].apply(len)
+    df=adjust_and_save_equilibrium_data_forfeiture(df)
+    df['Number of Steps'] = df.apply(
+        lambda row: calculate_steps(row['letters_count'], row['Equilibrium Data Forfeiture']) 
+        if pd.isna(row['Number of Steps']) else row['Number of Steps'], axis=1)
+    
     if file_path==file_path_data:
         df['estimated_time'] = df['letters_count'].apply(est_time_equation)
     elif file_path==file_path_m_data:

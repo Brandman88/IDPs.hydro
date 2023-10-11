@@ -128,7 +128,7 @@ equilibrium_data_forfeiture,num_run,start,marker,clean_list = get_equilibrium_da
 def parse_arguments_from_csv(start,filename='data_multi.csv'):
     TIME_STEP=0.01 #in Picoseconds
     df = pd.read_csv(filename)
-    ParticleN=row_specific_info_csv(start,'letters_count')
+    ParticleN=row_specific_info_csv('letters_count')
     row_index = int(start) - 1  # Assuming start is a string representing the row number
     arguments = df.iloc[row_index].to_dict()
 
@@ -214,9 +214,8 @@ simu.cutoff = args.cutoff
 
 
 
-equilibrium_steps=simu.Nstep
-steps_left=(simu.Nstep)/(equilibrium_data_forfeiture/100)-(simu.Nstep)
-simu.Nstep=steps_left+equilibrium_steps
+equilibrium_steps=simu.Nstep*(equilibrium_data_forfeiture/100)
+steps_left=simu.Nstep-equilibrium_steps
 
 
 T_unitless = simu.temp * KELVIN_TO_KT

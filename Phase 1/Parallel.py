@@ -124,6 +124,7 @@ def adjust_equilibrium_data(equilibrium_data_forfeiture):
 def est_time_equation(number_of_letters):
     estimated_time =(0.00000002*(number_of_letters)**4 + 0.0002*(number_of_letters)**3 -0.0327*(number_of_letters)**2 + 1.6003*(number_of_letters) + 30.112)
     print(f"Estimated time:  {estimated_time}")
+    estimated_time=time_check(estimated_time)
     return estimated_time
 
 def calculate_steps(number_of_letters,Equilibrium_Data_Forfeiture):
@@ -134,6 +135,13 @@ def calculate_steps(number_of_letters,Equilibrium_Data_Forfeiture):
 def est_time_equation_open(number_of_letters, number_of_steps):
     estimated_time = ((0.0000000475566667*(number_of_letters**1.4694734396))*number_of_steps)
     print(f"Time Estimate :{estimated_time}")
+    estimated_time=time_check(estimated_time)
+    return estimated_time
+
+def time_check(estimated_time):
+    if estimated_time<25:
+        estimated_time=25
+        print("Time Estimate Changed to 25 min")
     return estimated_time
 
 def process_csv(file_path):

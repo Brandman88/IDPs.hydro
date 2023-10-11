@@ -150,14 +150,14 @@ def process_csv(file_path):
     
     # Create a temporary column with the number of letters in "Sequence"
     df['letters_count'] = df['Sequence'].apply(len)
-    df=adjust_and_save_equilibrium_data_forfeiture(df)
-    df['Number of Steps'] = df.apply(
-        lambda row: calculate_steps(row['letters_count'], row['Equilibrium Data Forfeiture']) 
-        if pd.isna(row['Number of Steps']) else row['Number of Steps'], axis=1)
     
     if file_path==file_path_data:
         df['estimated_time'] = df['letters_count'].apply(est_time_equation)
     elif file_path==file_path_m_data:
+        df=adjust_and_save_equilibrium_data_forfeiture(df)
+        df['Number of Steps'] = df.apply(
+            lambda row: calculate_steps(row['letters_count'], row['Equilibrium Data Forfeiture']) 
+            if pd.isna(row['Number of Steps']) else row['Number of Steps'], axis=1)
         df['estimated_time'] = df.apply(lambda row: est_time_equation_open(row['letters_count'], row['Number of Steps']), axis=1)
     
 

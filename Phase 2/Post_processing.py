@@ -18,7 +18,9 @@ from bokeh.plotting import figure, show
 from bokeh.models import ColumnDataSource, HoverTool
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import Rectangle
-
+from typing import List
+from scipy.stats import norm
+from scipy.optimize import curve_fit
 
 def get_definitions():
     definitions = {}
@@ -60,7 +62,12 @@ def get_definitions_useful():
     del definitions['scale_axes']
     del definitions['choose_category_return_dict']
     del definitions['aggregate_group']
+    del definitions['find_common_columns_and_choose']
+    #del definitions['extract_concentration']
+    #del definitions['is_concentration_available']
     return definitions    
+
+
 
 def choose_category_return_dict():
     list_of_def=get_definitions_useful()
@@ -174,6 +181,25 @@ def scale_axes(fig):
                 elif scaling_user_selection == 3:
                     ax.set_xscale('log')
                     ax.set_yscale('log')
+
+def find_common_columns_and_choose(dataframes: List[pd.DataFrame]) -> str:
+    """
+    Finds common columns between multiple dataframes and allows the user to select one for further processing.
+    Args:
+    dataframes (List[pd.DataFrame]): A list of DataFrames to find common columns in.
+    Returns:
+    str: The selected column name.
+    """
+    # Finding the intersection of columns in all dataframes
+    common_columns = set.intersection(*(set(df.columns) for df in dataframes))
+
+    # If no common columns, return None
+    if not common_columns:
+        print("No common columns found.")
+        return None
+
+    # Allow user to choose a column from the common columns
+    return pick_from_list_dynamic(list(common_columns), "common columns")
 
 def get_common_dictionary_keys_choose(file1, file2, name):
     # Read the data from the CSV files
@@ -902,6 +928,172 @@ def merge_csv_files():
     merged_data.to_csv(output_file, index=False)
     print(f"CSV files merged successfully. Merged data exported to '{output_file}'.")
 
+def choose3dir_read_create_plot_histogram():
+    """
+    A complete workflow for histogram generation from selected directories.
+    """
+    root_directory = os.getcwd()
+    all_directories = [d for d in os.listdir(root_directory) if os.path.isdir(os.path.join(root_directory, d))]
+
+    # Step 1: Directory selection
+    selected_directories = pick_from_list_dynamic(all_directories, "directories", index_start_at=1)
+    directory_names = {directory: os.path.basename(directory) for directory in selected_directories}
+
+    # Debugging - Check selected directories
+    print("Selected directories for histogram:", selected_directories)
+
+    # Step 2: Collect unique names
+    unique_names = set()
+    for directory in selected_directories:
+        csv_files = [os.path.join(root_directory, directory, f) for f in os.listdir(os.path.join(root_directory, directory)) if f.endswith('.csv')]
+        for file in csv_files:
+            df = pd.read_csv(file)
+            df.columns = df.columns.str.strip()  # Strip whitespace from column names
+            unique_names.update(df['Name'].unique())
+
+    # Step 3: User selects a name
+
+    if not selected_name:
+        print("Unique name not selected.")
+        return
+
+    # Debugging - Check selected name
+    print("Selected name for histogram:", selected_name)
+
+    # Step 4: Compile and validate available concentrations
+    concentrations = set()
+    for directory in selected_directories:
+        csv_files = [os.path.join(root_directory, directory, f) for f in os.listdir(os.path.join(root_directory, directory)) if f.endswith('.csv')]
+        for file in csv_files:
+            df = pd.read_csv(file)
+            if 'Name' in df.columns and selected_name in df['Name'].values:
+                conc_column = 'Ionic Concentration' if 'Ionic Concentration' in df.columns else 'Monovalent Concentration'
+                df[conc_column] = df[conc_column].apply(lambda x: extract_concentration(str(x)))
+                concentrations.update(df[conc_column].unique())
+
+    # Debugging - Check concentrations before validation
+    print("Found concentrations before validation:", concentrations)
+
+    valid_concentrations = [c for c in concentrations if all(is_concentration_available(root_directory, d, selected_name, c) for d in selected_directories)]
+    if not valid_concentrations:
+        print("No valid concentrations found for the selected name across directories.")
+        return
+
+    # Debugging - Check valid concentrations
+    print("Valid concentrations after validation:", valid_concentrations)
+
+    selected_concentration = pick_from_list_static(valid_concentrations, "concentrations", index_start_at=1)
+    if not selected_concentration:
+        print("Concentration not selected.")
+        return
+
+
+
+def extract_concentration(concentration_str, ionic=True):
+    # For Ionic Concentration, check for '0' or extract numeric value before '*'
+    if ionic:
+        if concentration_str.strip() == '0':
+            return '0'
+        return concentration_str.split('*')[0] if '*' in concentration_str else concentration_str
+    # For Monovalent Concentration, simply return the string
+    return concentration_str
+
+def is_concentration_available(directory, name, concentration, root_directory):
+    found = False
+    print(directory, name, concentration, root_directory)
+    # Check for the concentration in both Ionic and Monovalent columns
+    for conc_type in ['Ionic Concentration', 'Monovalent Concentration']:
+        csv_files = [os.path.join(root_directory, directory, f) for f in os.listdir(os.path.join(root_directory, directory)) if f.endswith('.csv')]
+        for file in csv_files:
+            df = pd.read_csv(file)
+            if conc_type in df.columns:
+                df[conc_type] = df[conc_type].apply(lambda x: extract_concentration(str(x), ionic=(conc_type == 'Ionic Concentration')))
+                print(f"\nChecking file: {file}")
+                print(f"Column: {conc_type}")
+                print(f"Data for {name} in {conc_type}: {df[df['Name'] == name][conc_type].unique()}")
+                print(f"Searching for concentration: {concentration}")
+                if name in df['Name'].values and concentration in df[conc_type].values:
+                    found = True
+                    print("Match found!")
+                    break
+        if found:
+            break
+    if not found:
+        print("No match found in any files.")
+    return found
+
+def choose3dir_read_create_plot_histogram():
+    """
+    A complete workflow for histogram generation from selected directories.
+    """
+
+    root_directory = os.getcwd()
+    all_directories = [d for d in os.listdir(root_directory) if os.path.isdir(os.path.join(root_directory, d))]
+
+    # Step 1: Directory selection
+    selected_directories = pick_from_list_dynamic(all_directories, "directories", index_start_at=1)
+    directory_names = {directory: os.path.basename(directory) for directory in selected_directories}
+
+    # Step 2: Collect unique names
+    unique_names = set()
+    for directory in selected_directories:
+        csv_files = [os.path.join(root_directory, directory, f) for f in os.listdir(os.path.join(root_directory, directory)) if f.endswith('.csv')]
+        for file in csv_files:
+            df = pd.read_csv(file)
+            df.columns = df.columns.str.strip()  # Strip whitespace from column names
+            unique_names.update(df['Name'].unique())
+
+    # Step 3: User selects a name
+    list_names=list(unique_names)
+    print(list_names)
+    selected_name = pick_from_list_static(list_names, "unique names", index_start_at=1)
+    selected_name =list_names[selected_name-1]
+    if not selected_name:
+        print("Unique name not selected.")
+        return
+
+    # Step 4: Navigate to completed_run and find the right file
+    compiled_data = {}
+    for directory in selected_directories:
+        completed_run_dir = os.path.join(root_directory, directory, "completed_run")
+        if os.path.exists(completed_run_dir):
+            sub_dirs = [d for d in os.listdir(completed_run_dir) if os.path.isdir(os.path.join(completed_run_dir, d))]
+            print(sub_dirs)
+            # Find the right sub-directory based on the selected name
+            correct_sub_dir = None
+            for sub_dir in sub_dirs:
+                if selected_name in sub_dir:
+                    correct_sub_dir = sub_dir
+                    break
+            print(correct_sub_dir)
+            if correct_sub_dir:
+                # Navigate to the correct sub-directory
+                final_dir = os.path.join(completed_run_dir, correct_sub_dir)
+                files = os.listdir(final_dir)
+                data_file = next((f for f in files if f.endswith(('.dat', '.csv'))), None)
+                
+                if data_file:
+                    df = pd.read_csv(os.path.join(final_dir, data_file))
+                    histogram_column = pick_from_list_static(df.columns.tolist(), "columns for histogram", index_start_at=1)
+                    if histogram_column:
+                        compiled_data[directory] = df[histogram_column].tolist()
+                else:
+                    print(f"No suitable data file found in {final_dir}.")
+
+    # Step 5: Generate histogram
+    if compiled_data:
+        plt.figure(figsize=(10, 6))
+        for name, data in compiled_data.items():
+            plt.hist(data, bins=20, alpha=0.5, label=name)
+        plt.title(f'Histogram of {histogram_column}')
+        plt.xlabel(histogram_column)
+        plt.ylabel('Frequency')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+    else:
+        print("No data compiled for histogram generation.")
+
 def merge_csv_HPS2_HPS1_SOPIDP_files():
     """
     Merges three CSV files: HPS1, HPS2, and SOP_IDP based on 'Name' and 'Ionic Concentration' columns.
@@ -1458,6 +1650,79 @@ def plot_single_box_and_whisker():
     safe_filename = f'box_and_whisker_{column_to_plot}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
+
+def plot_histogram_nightmare():
+    loc1 = list_csv_files_in_directory_choose('Location of csv files directory')
+    loc2 = list_dat_files_in_directory_choose()
+    loc3 = list_dat_files_in_directory_choose()
+    print("CSV Files:", loc1)
+    print("DAT Files (Set 1):", loc2)
+    print("DAT Files (Set 2):", loc3)
+
+    # Input the name of the independent variable column
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
+
+    # Input the title for the plot
+    plot_title = input("Enter a title for the plot: ")
+
+    # Create a larger figure to plot
+    fig, ax = plt.subplots(figsize=(16, 12))
+
+    # Names and colors for the datasets
+    dataset_names = ["SOP_IDP (CSV)", "HPS2 (DAT File 1)", "HPS1 (DAT File 2)"]
+    dataset_colors = ['blue', 'green', 'red']
+
+    # Initialize a list to store legend handles and labels
+    legend_handles = []
+
+    # Loop through and process each dataset
+    for dataset, color, name in zip([loc1, loc2, loc3], dataset_colors, dataset_names):
+        df = pd.read_csv(dataset)
+
+        # Evaluate values and convert to floats
+        df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+        # Fit a bell curve (normal distribution) to the data
+        mu, std = norm.fit(df[independent])
+
+        # Generate more points for smoother curve
+        bell_curve_x = np.linspace(min(df[independent]), max(df[independent]), 1000)
+        bell_curve_y = norm.pdf(bell_curve_x, mu, std)
+        
+        # Calculate the shaded area under the bell curve
+        p = norm.cdf(bell_curve_x, mu, std)
+
+        # Plot the shaded area under the bell curve
+        ax.fill_between(bell_curve_x, 0, bell_curve_y, where=(bell_curve_x >= min(df[independent])), color=color, alpha=0.3)
+
+        # Plot the bell curve with a black line around it
+        ax.plot(bell_curve_x, bell_curve_y, color=color, linewidth=2, linestyle='-', marker='', markersize=1, markeredgecolor='black', markeredgewidth=0.5)
+
+        # Plot the bars with black borders
+        ax.hist(df[independent], bins=20, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
+
+        # Create a legend handle for this dataset
+        legend_handles.append(plt.Line2D([], [], color=color, linewidth=2, label=f'{name} ($\mu$={mu:.2f}, $\sigma$={std:.2f})'))
+
+    ax.set_xlabel(independent)  # Update the x-axis label
+    ax.set_ylabel('Normalized Frequency')  # Update the y-axis label
+
+    # Set the title of the plot
+    ax.set_title(plot_title)
+
+    ax.legend(handles=legend_handles)  # Use the list of legend handles
+
+    # Saving the plot with the user-defined name
+    safe_filename = f'{plot_title}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.show()
+
+
+
+
+
+
+
 
 def plot_box_and_whisker_grouped():
     # Step 1: Get the CSV file location from the user

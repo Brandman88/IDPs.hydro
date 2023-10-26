@@ -902,6 +902,57 @@ def merge_csv_files():
     merged_data.to_csv(output_file, index=False)
     print(f"CSV files merged successfully. Merged data exported to '{output_file}'.")
 
+def merge_csv_HPS2_HPS1_SOPIDP_files():
+    """
+    Merges three CSV files: HPS1, HPS2, and SOP_IDP based on 'Name' and 'Ionic Concentration' columns.
+    The file locations are chosen by the user.
+    
+    :return: A merged DataFrame.
+    """
+
+    # Let the user pick the file paths
+    hps1_path = list_csv_files_in_directory_choose('hps1 file location')
+    hps2_path = list_csv_files_in_directory_choose('hps2 file location')
+    sop_idp_path = list_csv_files_in_directory_choose('sop_idp file location')
+
+    # Load the CSV files
+    hps1 = pd.read_csv(hps1_path)
+    hps2 = pd.read_csv(hps2_path)
+    sop_idp = pd.read_csv(sop_idp_path)
+
+    # Convert Monovalent Concentration in SOP_IDP to match the format in HPS1 and HPS2
+    sop_idp['Monovalent Concentration'] = sop_idp['Monovalent Concentration'].apply(lambda x: f"{x}*1e-03")
+
+    # Rename the Monovalent Concentration column to Ionic Concentration
+    sop_idp.rename(columns={'Monovalent Concentration': 'Ionic Concentration'}, inplace=True)
+
+    # Adjust units in SOP_IDP from Angstrom to nanometers
+    sop_idp['SOP_IDP_<Rend2>'] = sop_idp['<Rend2>'] / 100  # Convert <Rend2>
+    sop_idp['SOP_IDP_<Rg_avg>'] = sop_idp['<Rg_avg>'] / 10   # Convert <Rg_avg>
+    sop_idp['SOP_IDP_sqrt(<Rg2>)'] = sop_idp['sqrt(<Rg2>)'] / 10  # Convert sqrt(<Rg2>)
+    sop_idp['SOP_IDP_<Rg2>'] = sop_idp['<Rg2>'] / 100   # Convert <Rg2>
+
+    # Append file type to column names for each DataFrame
+    hps1 = hps1.add_prefix('HPS1_')
+    hps2 = hps2.add_prefix('HPS2_')
+    sop_idp = sop_idp.add_prefix('SOP_IDP_')
+
+    # Revert the prefix addition for the key columns (Name and Ionic Concentration)
+    for df in [hps1, hps2, sop_idp]:
+        df.rename(columns={df.columns[0]: 'Name', df.columns[1]: 'Ionic Concentration'}, inplace=True)
+
+    # Filter HPS1 and HPS2 to include only entries that exist in SOP_IDP
+    sop_idp_keys = sop_idp[['Name', 'Ionic Concentration']]
+    hps1 = hps1[hps1[['Name', 'Ionic Concentration']].isin(sop_idp_keys.to_dict('list')).all(axis=1)]
+    hps2 = hps2[hps2[['Name', 'Ionic Concentration']].isin(sop_idp_keys.to_dict('list')).all(axis=1)]
+
+    # Merge the dataframes
+    merged_df = pd.merge(hps1, hps2, on=['Name', 'Ionic Concentration'], how='outer')
+    merged_df = pd.merge(merged_df, sop_idp, on=['Name', 'Ionic Concentration'], how='outer')
+
+    return merged_df
+
+
 def append_csv_files():
     file1=list_csv_files_in_directory_choose('File Location 1')
     file2=list_csv_files_in_directory_choose('File Location 2')

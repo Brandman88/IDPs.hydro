@@ -130,7 +130,7 @@ print (f'{ParticleN},{round(avg_bondl,3)},{round(avg_lp,3)},{rounded_avg_Rendsq}
 Stat_Output.close()
 
 Running_Stats_output = open ("running_stat.dat", "w")
-print ("# cos(angle),lp,Rgsq,Rg^2,R_endsq,TransFluctsq", file=Running_Stats_output)
+print ("# cos(angle),lp,Rg,Rg^2,R_end^2,TransFluctsq", file=Running_Stats_output)
 for i in range (ntime):
     rensq_rounded=round(float(RendSq[i]),3)
     print (f'{round(cosangle_array[i],3)},{round(-1.0/np.log(cosangle_array[i]),3)},{round(np.sqrt(Rgyr2[i]),3)},{round(Rgyr2[i],3)},{rensq_rounded},{round(TransSq[i],3)}', file=Running_Stats_output)

@@ -1888,7 +1888,7 @@ def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent,
         ax.plot(bell_curve_x, bell_curve_y, color=color, linewidth=2, linestyle='-', marker='', markersize=1, markeredgecolor='black', markeredgewidth=0.5)
 
         # Plot the bars with black borders
-        ax.hist(df[independent], bins=20, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
+        ax.hist(df[independent], bins=75, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
 
         # Create a legend handle for this dataset
         legend_handles.append(plt.Line2D([], [], color=color, linewidth=2, label=f'{name} ($\mu$={mu:.2f}, $\sigma$={std:.2f})'))
@@ -1897,15 +1897,14 @@ def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent,
     ax.set_xlim(0, x_max + std)  # Extend x-axis slightly
     ax.set_ylim(0, max_bell_curve_height * 1.05)  # Extend y-axis slightly
 
-    # No individual x-axis label here
-
     # Configure and position the legend
     legend = ax.legend(handles=legend_handles, loc='upper right', fontsize=legend_fontsize, frameon=False)  # Large font size and no background
 
     # Set and position the title
     ax.text(0.95, 0.70, plot_title, transform=ax.transAxes, fontsize=title_fontsize, fontweight='bold', verticalalignment='top', horizontalalignment='right', backgroundcolor='none')
 
-
+    # Enlarge axis tick marks
+    ax.tick_params(axis='both', which='major', labelsize=24)  # Increase tick label size
 
 def plot_grid_histograms():
     # Create a 3x2 grid of plots
@@ -1913,7 +1912,7 @@ def plot_grid_histograms():
 
     loc1 = list_csv_files_in_directory_choose(f'just for the independent variable')
     independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
-    titles = ["p53", "PlroTa-N", "K16", "Nucleoporin153", "hCyp", "K25"]  
+    titles = ["p53", "ProTa-N", "K16", "Nucleoporin153", "CspTm", "K25"]    # Example titles
 
     # Loop through each subplot to get individual file sets
     for ax, title in zip(axes.flatten(), titles):
@@ -1930,11 +1929,10 @@ def plot_grid_histograms():
         plot_histogram_nightmare_more(ax, title, loc1, loc2, loc3, independent, ["SOP_IDP", "HPS2", "HPS1"], ['blue', 'green', 'orange'])
 
     plt.tight_layout(pad=3.0)
-    fig.text(0.5, 0.01, independent, ha='center', va='center', fontsize=20)  # Central x-axis label for the entire figure
+    fig.text(0.5, 0.01, independent, ha='center', va='center', fontsize=60)  # Central x-axis label for the entire figure, larger font size
     # Saving the plot with the user-defined name
-    safe_filename = f'Death.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    safe_filename = 'Death.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
-    plt.show()
     plt.show()
 
 

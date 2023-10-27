@@ -40,6 +40,8 @@ def get_definitions_useful():
             else:
                 definitions[name] = obj
     del definitions['pearsonr']
+    del definitions['show']
+    del definitions['curve_fit']
     del definitions['spec_from_file_location']
     del definitions['module_from_spec']
     del definitions['get_definitions']
@@ -585,6 +587,131 @@ def plot_something_many_labels_typical():
     safe_filename = f'{dependent}_vs_{independent}_labeled_by_{label}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##########################################################################################################
+# Molecular Dynamics
+def list_files_in_directory_choose(extension, description):
+    # Get the current directory
+    current_dir = os.getcwd()
+
+    # Get all files in the directory with the specified extension
+    files = [f for f in os.listdir(current_dir) if f.endswith(extension)]
+
+    if not files:
+        print(f"No {extension} files found in the current directory.")
+        return None
+
+    return pick_from_list_static(files, f'{description} files'),files
+
+def list_gsd_files_in_directory_choose(description):
+    return list_files_in_directory_choose('.gsd', description)
+
+def analyze_molecular_dynamics():
+    # Ask the user to select the GSD and topology files
+    gsd_file,t_file_gsd = list_gsd_files_in_directory_choose("Choose a GSD file for analysis")
+    topology_file,t_file_top = list_gsd_files_in_directory_choose("Choose a Topology file")
+    topology_file=t_file_top[topology_file-1]
+    gsd_file=t_file_gsd[gsd_file-1]
+    # If either file selection is None (i.e., no file found or selected), exit the function
+    if not gsd_file or not topology_file:
+        print("File selection canceled or no files found. Exiting analysis.")
+        return
+
+    # Let the user pick atom indices
+    atom_indices = pick_from_list_static(["First Atom (0)", "Last Atom (-1)"], "Atom Indices", 1)
+    # Translate the user's choice to actual indices
+    if atom_indices == 2:
+        atom_indices = [0]  # First atom
+    else:
+        atom_indices = [-1]  # Last atom
+
+    # Ask the user to choose a stride value for loading the trajectory
+    stride = pick_from_list_static([1, 10, 100, 1000], "Stride", 1)
+    
+    # Debugging output
+    print("GSD file:", gsd_file)
+    print("Topology file:", topology_file)
+    
+    # Analyze the end-to-end distance distribution
+    analyze_end_to_end_distribution(gsd_file, topology_file, stride=stride, atom_indices=atom_indices)
+
+
+
+def analyze_end_to_end_distribution(gsd_file, topology_file, stride=10, atom_indices=[0, -1]):
+    """
+    Analyze the end-to-end distance distribution along x, y, and z axes of a molecule in a GSD file.
+
+    :param gsd_file: Path to the GSD file.
+    :param topology_file: Path to the topology file.
+    :param stride: Stride for loading the trajectory. Higher values load fewer frames.
+    :param atom_indices: Indices of the terminal atoms for end-to-end distance calculation.
+    """
+    import mdtraj as md
+    import gsd
+    # Load the trajectory
+    traj = md.load(gsd_file, top=topology_file, stride=stride)
+
+    # Initialize lists to store distance components
+    distances_x, distances_y, distances_z = [], [], []
+
+    # Iterate over each frame in the trajectory
+    for frame in traj:
+        # Calculate the vector from the first to the last atom
+        vector = frame.xyz[0, atom_indices[-1], :] - frame.xyz[0, atom_indices[0], :]
+        
+        # Decompose the vector into x, y, and z components and store them
+        distances_x.append(np.abs(vector[0]))
+        distances_y.append(np.abs(vector[1]))
+        distances_z.append(np.abs(vector[2]))
+
+    # Plotting the distributions
+    plt.figure(figsize=(12, 4))
+
+    # Distribution along X-axis
+    plt.subplot(1, 3, 1)
+    plt.hist(distances_x, bins=30, alpha=0.7)
+    plt.title('Distribution Along X-axis')
+    plt.xlabel('Distance (nm)')
+    plt.ylabel('Frequency')
+
+    # Distribution along Y-axis
+    plt.subplot(1, 3, 2)
+    plt.hist(distances_y, bins=30, alpha=0.7)
+    plt.title('Distribution Along Y-axis')
+    plt.xlabel('Distance (nm)')
+
+    # Distribution along Z-axis
+    plt.subplot(1, 3, 3)
+    plt.hist(distances_z, bins=30, alpha=0.7)
+    plt.title('Distribution Along Z-axis')
+    plt.xlabel('Distance (nm)')
+
+    plt.tight_layout()
+    plt.show()
+
+# Example usage
+# analyze_end_to_end_distribution('path_to_your_file.gsd', 'path_to_your_topology_file.top')
+
+
+
+##########################################################################################################
+
+
 
 def plot_something_many_labels_typical_and_relative():
     # Read the CSV file into a pandas DataFrame
@@ -1669,11 +1796,14 @@ def plot_histogram_nightmare():
     fig, ax = plt.subplots(figsize=(16, 12))
 
     # Names and colors for the datasets
-    dataset_names = ["SOP_IDP (CSV)", "HPS2 (DAT File 1)", "HPS1 (DAT File 2)"]
-    dataset_colors = ['blue', 'green', 'red']
+    dataset_names = ["SOP_IDP", "HPS2", "HPS1"]
+    dataset_colors = ['blue', 'green', 'orange']
 
     # Initialize a list to store legend handles and labels
     legend_handles = []
+
+    max_bell_curve_height = 0  # Initialize maximum bell curve height
+    x_max = 0  # Initialize max x value
 
     # Loop through and process each dataset
     for dataset, color, name in zip([loc1, loc2, loc3], dataset_colors, dataset_names):
@@ -1685,15 +1815,18 @@ def plot_histogram_nightmare():
         # Fit a bell curve (normal distribution) to the data
         mu, std = norm.fit(df[independent])
 
+        # Update max x value
+        x_max = max(x_max, mu + 3 * std)
+
         # Generate more points for smoother curve
-        bell_curve_x = np.linspace(min(df[independent]), max(df[independent]), 1000)
+        bell_curve_x = np.linspace(0, x_max + std, 1000)  # Extend x-axis slightly
         bell_curve_y = norm.pdf(bell_curve_x, mu, std)
         
-        # Calculate the shaded area under the bell curve
-        p = norm.cdf(bell_curve_x, mu, std)
+        # Update the maximum bell curve height if this one is higher
+        max_bell_curve_height = max(max_bell_curve_height, max(bell_curve_y))
 
         # Plot the shaded area under the bell curve
-        ax.fill_between(bell_curve_x, 0, bell_curve_y, where=(bell_curve_x >= min(df[independent])), color=color, alpha=0.3)
+        ax.fill_between(bell_curve_x, 0, bell_curve_y, color=color, alpha=0.3)
 
         # Plot the bell curve with a black line around it
         ax.plot(bell_curve_x, bell_curve_y, color=color, linewidth=2, linestyle='-', marker='', markersize=1, markeredgecolor='black', markeredgewidth=0.5)
@@ -1704,20 +1837,105 @@ def plot_histogram_nightmare():
         # Create a legend handle for this dataset
         legend_handles.append(plt.Line2D([], [], color=color, linewidth=2, label=f'{name} ($\mu$={mu:.2f}, $\sigma$={std:.2f})'))
 
+    # Set the x-axis and y-axis limits
+    ax.set_xlim(0, x_max + std)  # Extend x-axis slightly
+    ax.set_ylim(0, max_bell_curve_height * 1.05)  # Extend y-axis slightly
+
     ax.set_xlabel(independent)  # Update the x-axis label
-    ax.set_ylabel('Normalized Frequency')  # Update the y-axis label
 
-    # Set the title of the plot
-    ax.set_title(plot_title)
+    # Configure and position the legend
+    legend = ax.legend(handles=legend_handles, loc='upper right', fontsize=20, frameon=False)  # Large font size and no background
 
-    ax.legend(handles=legend_handles)  # Use the list of legend handles
+    # Set and position the title
+    ax.text(0.95, 0.70, plot_title, transform=ax.transAxes, fontsize=65, fontweight='bold', verticalalignment='top', horizontalalignment='right', backgroundcolor='none')
 
     # Saving the plot with the user-defined name
     safe_filename = f'{plot_title}.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.show()
 
+def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent, dataset_names, dataset_colors, legend_fontsize=25, title_fontsize=75):
+    # Initialize a list to store legend handles and labels
+    legend_handles = []
 
+    max_bell_curve_height = 0  # Initialize maximum bell curve height
+    x_max = 0  # Initialize max x value
+
+    # Loop through and process each dataset
+    for dataset, color, name in zip([loc1, loc2, loc3], dataset_colors, dataset_names):
+        df = pd.read_csv(dataset)
+
+        # Evaluate values and convert to floats
+        df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
+
+        # Fit a bell curve (normal distribution) to the data
+        mu, std = norm.fit(df[independent])
+
+        # Update max x value
+        x_max = max(x_max, mu + 3 * std)
+
+        # Generate more points for smoother curve
+        bell_curve_x = np.linspace(0, x_max + std, 1000)  # Extend x-axis slightly
+        bell_curve_y = norm.pdf(bell_curve_x, mu, std)
+
+        # Update the maximum bell curve height if this one is higher
+        max_bell_curve_height = max(max_bell_curve_height, max(bell_curve_y))
+
+        # Plot the shaded area under the bell curve
+        ax.fill_between(bell_curve_x, 0, bell_curve_y, color=color, alpha=0.3)
+
+        # Plot the bell curve with a black line around it
+        ax.plot(bell_curve_x, bell_curve_y, color=color, linewidth=2, linestyle='-', marker='', markersize=1, markeredgecolor='black', markeredgewidth=0.5)
+
+        # Plot the bars with black borders
+        ax.hist(df[independent], bins=20, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
+
+        # Create a legend handle for this dataset
+        legend_handles.append(plt.Line2D([], [], color=color, linewidth=2, label=f'{name} ($\mu$={mu:.2f}, $\sigma$={std:.2f})'))
+
+    # Set the x-axis and y-axis limits
+    ax.set_xlim(0, x_max + std)  # Extend x-axis slightly
+    ax.set_ylim(0, max_bell_curve_height * 1.05)  # Extend y-axis slightly
+
+    # No individual x-axis label here
+
+    # Configure and position the legend
+    legend = ax.legend(handles=legend_handles, loc='upper right', fontsize=legend_fontsize, frameon=False)  # Large font size and no background
+
+    # Set and position the title
+    ax.text(0.95, 0.70, plot_title, transform=ax.transAxes, fontsize=title_fontsize, fontweight='bold', verticalalignment='top', horizontalalignment='right', backgroundcolor='none')
+
+
+
+def plot_grid_histograms():
+    # Create a 3x2 grid of plots
+    fig, axes = plt.subplots(3, 2, figsize=(32, 24))
+
+    loc1 = list_csv_files_in_directory_choose(f'just for the independent variable')
+    independent = show_dictionary_keys_from_csv_choose(loc1, 'Independent')
+    titles = ["p53", "PlroTa-N", "K16", "Nucleoporin153", "hCyp", "K25"]  
+
+    # Loop through each subplot to get individual file sets
+    for ax, title in zip(axes.flatten(), titles):
+        # Select file locations for each subplot
+        loc1 = list_csv_files_in_directory_choose(f'Location of csv files directory for {title}')
+        loc2 = list_dat_files_in_directory_choose()
+        loc3 = list_dat_files_in_directory_choose()
+
+        print(f"CSV Files for {title}:", loc1)
+        print(f"DAT Files (Set 1) for {title}:", loc2)
+        print(f"DAT Files (Set 2) for {title}:", loc3)
+
+        # Plot each histogram
+        plot_histogram_nightmare_more(ax, title, loc1, loc2, loc3, independent, ["SOP_IDP", "HPS2", "HPS1"], ['blue', 'green', 'orange'])
+
+    plt.tight_layout(pad=3.0)
+    fig.text(0.5, 0.01, independent, ha='center', va='center', fontsize=20)  # Central x-axis label for the entire figure
+    # Saving the plot with the user-defined name
+    safe_filename = f'Death.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.show()
+    plt.show()
 
 
 

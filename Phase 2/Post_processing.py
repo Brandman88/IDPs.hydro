@@ -8,10 +8,11 @@ import matplotlib.pyplot as plt
 import re
 import statistics
 import ast
+from matplotlib import rc
 from matplotlib.lines import Line2D
 from math import *
 from random import *
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, truncnorm, norm, lognorm
 import inspect
 from importlib.util import spec_from_file_location, module_from_spec
 from bokeh.plotting import figure, show
@@ -19,8 +20,8 @@ from bokeh.models import ColumnDataSource, HoverTool
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import Rectangle
 from typing import List
-from scipy.stats import norm
 from scipy.optimize import curve_fit
+
 
 def get_definitions():
     definitions = {}
@@ -558,7 +559,7 @@ def plot_something_many_labels_typical():
     # Evaluate values and convert to floats
     df[dependent] = df[dependent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
     df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
-
+    
     # Group the data by item name
     grouped_data = df.groupby(label)
     # Convert grouped_data to a list of groups
@@ -588,6 +589,68 @@ def plot_something_many_labels_typical():
     plt.savefig(safe_filename, bbox_inches='tight')
     plt.close()
 
+def plot_multiple_scatters_custom_labels_with_trendlines():
+    # Create a 1x3 grid of plots
+    #rc('text', usetex=True)
+    fig, axes = plt.subplots(1, 3, figsize=(24, 8))
+
+    # Information for each plot
+    plots_info = [
+    {
+        "file_location": "SOP_IDP_HPS1_HPS2_cleaned_merged.csv",
+        "title": "SOP_IDP v.s. HPS1",
+        "x_column": "SOP_IDP_<Rend2>",
+        "y_column": "HPS1_<Rend2>",
+        "x_label": r"SOP_IDP$_{R_{end}}$", 
+        "y_label": r"HSP1$_{R_{end}}$"
+    },
+    {
+        "file_location": "SOP_IDP_HPS1_HPS2_cleaned_merged.csv",
+        "title": "SOP_IDP v.s. HPS2",
+        "x_column": "SOP_IDP_<Rend2>",
+        "y_column": "HPS2_<Rend2>",
+        "x_label": r"SOP_IDP$_{R_{end}}$",
+        "y_label": r"HSP2$_{R_{end}}$"
+    },
+    {
+        "file_location": "SOP_IDP_HPS1_HPS2_cleaned_merged.csv",
+        "title": "HPS1 v.s. HPS2",
+        "x_column": "HPS1_<Rend2>",
+        "y_column": "HPS2_<Rend2>",
+        "x_label": r"HSP1$_{R_{end}}$",
+        "y_label": r"HSP2$_{R_{end}}$"
+    }
+]
+
+    for ax, plot in zip(axes.flatten(), plots_info):
+        data_df = pd.read_csv(plot["file_location"])
+        x = np.sqrt(data_df[plot["x_column"]])
+        y = np.sqrt(data_df[plot["y_column"]])
+        #x = data_df[plot["x_column"]]
+        #y = data_df[plot["y_column"]]
+
+        # Plot the data
+        ax.scatter(x, y)
+        ax.set_xlabel(plot["x_label"], fontsize=25)
+        ax.set_ylabel(plot["y_label"], fontsize=25)
+        ax.set_title(plot["title"], fontsize=25)
+
+        # Trend line calculation
+        m, b = np.polyfit(x, y, 1)
+        ax.plot(x, m * x + b, color="red")
+
+        # Predict values and calculate R-squared manually
+        y_pred = m * x + b
+        ss_res = np.sum((y - y_pred) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
+        r_squared = 1 - (ss_res / ss_tot)
+
+        ax.annotate(f'R² = {r_squared:.3f}', xy=(0.05, 0.95), xycoords='axes fraction', fontsize=22, color="red")
+
+    plt.tight_layout()
+    safe_filename = 'scatter_plots_with_trendlines.svg'
+    plt.savefig(safe_filename, bbox_inches='tight')
+    plt.show()
 
 
 
@@ -1867,7 +1930,7 @@ def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent,
 
         # Evaluate values and convert to floats
         df[independent] = df[independent].apply(lambda x: eval(x) if isinstance(x, str) else x).astype(float)
-
+        #df[independent] = df[independent].apply(lambda x: sqrt(x))
         # Fit a bell curve (normal distribution) to the data
         mu, std = norm.fit(df[independent])
 
@@ -1877,6 +1940,10 @@ def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent,
         # Generate more points for smoother curve
         bell_curve_x = np.linspace(0, x_max + std, 1000)  # Extend x-axis slightly
         bell_curve_y = norm.pdf(bell_curve_x, mu, std)
+        
+        # Taper off the curve towards zero at the lower end
+        #taper_function = np.exp(-5 * (bell_curve_x - mu)**2 / std**2)
+        #bell_curve_y *= taper_function
 
         # Update the maximum bell curve height if this one is higher
         max_bell_curve_height = max(max_bell_curve_height, max(bell_curve_y))
@@ -1888,7 +1955,7 @@ def plot_histogram_nightmare_more(ax, plot_title, loc1, loc2, loc3, independent,
         ax.plot(bell_curve_x, bell_curve_y, color=color, linewidth=2, linestyle='-', marker='', markersize=1, markeredgecolor='black', markeredgewidth=0.5)
 
         # Plot the bars with black borders
-        ax.hist(df[independent], bins=75, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
+        ax.hist(df[independent], bins=200, alpha=0.15, density=True, color=color, edgecolor='black', linewidth=1.3, histtype='bar')
 
         # Create a legend handle for this dataset
         legend_handles.append(plt.Line2D([], [], color=color, linewidth=2, label=f'{name} ($\mu$={mu:.2f}, $\sigma$={std:.2f})'))
@@ -1928,8 +1995,15 @@ def plot_grid_histograms():
         # Plot each histogram
         plot_histogram_nightmare_more(ax, title, loc1, loc2, loc3, independent, ["SOP_IDP", "HPS2", "HPS1"], ['blue', 'green', 'orange'])
 
+
+    
     plt.tight_layout(pad=3.0)
-    fig.text(0.5, 0.01, independent, ha='center', va='center', fontsize=60)  # Central x-axis label for the entire figure, larger font size
+    #independent="R_end"
+    #x_axis_label = f"$R_{{g}}$"  # Example: if independent = "R_{end}"
+    fig.text(0.5, -0.02, independent, ha='center', va='center', fontsize=60)  # Central x-axis label for the entire figure, larger font size
+    #y_axis_label = f"$P(R_{{g}})$"  # Example: "P(R_{end})"
+    y_axis_label=f"P({independent})"
+    fig.text(-0.02, 0.5, y_axis_label, ha='center', va='center', rotation='vertical', fontsize=60)
     # Saving the plot with the user-defined name
     safe_filename = 'Death.svg'.replace("<", "").replace(">", "").replace(":", "").replace("*", "").replace("?", "").replace("\"", "").replace("\\", "").replace("/", "").replace("|", "")
     plt.savefig(safe_filename, bbox_inches='tight')

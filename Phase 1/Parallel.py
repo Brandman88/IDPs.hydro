@@ -133,7 +133,7 @@ def calculate_steps(number_of_letters,Equilibrium_Data_Forfeiture):
     
 
 def est_time_equation_open(number_of_letters, number_of_steps):
-    estimated_time = (((0.0643)(number_of_letters)**2+(5.9163)(number_of_letters)-0.0356)(number_of_steps/30000000))
+    estimated_time = (((0.0643)*(number_of_letters)**2+(5.9163)*(number_of_letters)-0.0356)*(number_of_steps/30000000))
     print(f"Time Estimate :{estimated_time}")
     estimated_time=time_check(estimated_time)
     return estimated_time

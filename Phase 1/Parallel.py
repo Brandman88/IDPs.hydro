@@ -9,6 +9,7 @@ from collections import defaultdict
 import datetime
 import glob
 import re
+import numpy as np
 
 max_safe_group=100
 over_guess_percent=15 
@@ -131,11 +132,15 @@ def calculate_steps(number_of_letters,Equilibrium_Data_Forfeiture):
     temp=int((float(3*number_of_letters)**2.2)/0.01)
     return (temp*100/Equilibrium_Data_Forfeiture)    
     
-
 def est_time_equation_open(number_of_letters, number_of_steps):
-    estimated_time = (((0.0643)*(number_of_letters)**2+(5.9163)*(number_of_letters)-0.0356)*(number_of_steps/30000000))
-    print(f"Time Estimate :{estimated_time}")
-    estimated_time=time_check(estimated_time)
+    if number_of_letters <= 200:
+        estimated_time = 322.43 * np.exp(0.0125 * number_of_letters)
+    else:
+        estimated_time = 621.61 * np.exp(0.0089 * number_of_letters)
+
+    estimated_time *= number_of_steps / 30000000
+    print(f"Time Estimate: {estimated_time}")
+    estimated_time = time_check(estimated_time)
     return estimated_time
 
 def time_check(estimated_time):
